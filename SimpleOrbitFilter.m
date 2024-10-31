@@ -192,7 +192,7 @@ clear filtered smoothed add_info % These are the biggest
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Save Results
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ~exist("results","dir")
+if ~isfolder("results")
     mkdir("results")
 end
 
@@ -233,7 +233,7 @@ fprintf("Results Saved in %02d:%06.3f\n\n",floor(cTime/60),mod(cTime,60))
 closeAfterSave = true;
 
 nSats = constellation.nSats;
-if ~exist("images","dir")
+if ~isfolder("images")
     mkdir("images")
 end
 
