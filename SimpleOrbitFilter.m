@@ -1,7 +1,6 @@
 % Nolan Canegallo
 % SimpleOrbitFilter.m
 % MAE 586 - Atmospheric Density Estimation Project
-% 25 October 2024
 clear; clc; close all;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Constants and Parameters
@@ -175,7 +174,7 @@ fprintf("Finished LKF_RTSpre Passes for all Satellites in: %02d:%06.3f\n\n",...
     floor(tTime/60),mod(tTime,60))
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Clear extra variables
+%% Save Results
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 saveString = sprintf("%s_%s-%d_%s-%s-%s_%sIter_%sPmat_%.2EPer_dt%.1Es_Q-"+ ...
@@ -183,20 +182,11 @@ saveString = sprintf("%s_%s-%d_%s-%s-%s_%sIter_%sPmat_%.2EPer_dt%.1Es_Q-"+ ...
     func2str(XdotNL),func2str(XdotPhidot),outIter,outPmat,numPeriods,dt,...
     Qtype,Rtype,Htype);
 
-clear satFun inclin nSats nPlanes phasing argLat satNames
-clear Qdata Rdata Hdata Qtype Rtype Htype QRH
-clear XdotPhidot vsIntFun odeOpts;
-clear smoTol maxIter maxInc outIter outPmat
-clear filtered smoothed add_info % These are the biggest
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Save Results
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~isfolder("results")
     mkdir("results")
 end
 
-if isfile(saveString)
+if isfile("results\\" + saveString)
     BigSave = false;
 else
     BigSave = true;
@@ -208,16 +198,31 @@ if BigSave
     save("results\\"+saveString,"-v7.3")
     cTime = toc;
 else
+    subDir = sprintf("results\\%s",satNames);
+    if ~isfolder(subDir)
+        mkdir(subDir)
+    end
     tic
     for i = 1:nSats
         fprintf("Saving Satellite %d Results to file...\n",i)
-        resultString = sprintf("results\\%s\\satellite%d.mat",satNames,i);
+        resultString = subDir + sprintf("\\satellite%d.mat",i);
         temp = satSol(i);
         save(resultString,"temp","-v7.3");
     end
     cTime = toc;
 end
 fprintf("Results Saved in %02d:%06.3f\n\n",floor(cTime/60),mod(cTime,60))
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Clear Redundant Variables
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+clear satFun inclin nSats nPlanes phasing argLat satNames
+clear Qdata Rdata Hdata Qtype Rtype Htype QRH
+clear XdotPhidot vsIntFun odeOpts
+clear smoTol maxIter maxInc outIter outPmat
+clear BigSave subDir saveString 
+clear filtered smoothed add_info % These are the biggest
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Load Results
