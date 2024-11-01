@@ -18,10 +18,16 @@ seed = 0;              % Random number seed
 generator = "twister"; % Random number generator
 rng(seed,generator)
 
-% Parameters
+% Parameters of Earth
 muE = 398600.4415; % Earth gravitational parameter [km^3/s^2]
 rE = 6378.1363;    % Earth radius [km]
 wE = (2*pi)/86164.0905308; % Earth angular velocity (about z) [rad/s]
+rhoFun = @expDensity;      % Atmospheric Density function
+
+% Parameters for drag (all satellites the same)
+Cd = 2.17;                 % Nominal Drag coefficient
+A = 1e1*1e-6;                % Cross sectional area [km^2]
+m = 4;                     % Mass [kg]
 
 % For Satellite Constellation
 satFun = @walkerStar; % Function to generate constellation
@@ -35,12 +41,12 @@ satNames = "Iridium"; % Name String
 
 % For Integration
 t0 = 0;           % Initial Time [s]
-numPeriods = 3; % Number of periods to calculate
+numPeriods = 1; % Number of periods to calculate
 dt = 60;           % Time Step [s]
 
 % Set System Functions
-XdotNL = @stateEQ_nodrag;
-XdotPhidot = @stateSTM_nodrag;
+XdotNL = @stateEQ_drag_6s7p;
+XdotPhidot = @stateSTM_drag_6s7p;
 vsIntFun = @ode89;
 odeOpts = odeset("AbsTol",1e-9,"RelTol",1e-8);
 
@@ -57,8 +63,8 @@ sigmaMeas = 0.4e-3*ones(3,1); % Standard Deviation of Position Measurement
 covMeas = sigmaMeas.^2;       % Variance of Position Measurement
 
 % For P matrix
-sigmaPos = 1.0e-0*ones(3,1); % Standard Deviation of Initial Position Estimate
-sigmaVel = 1.0e-0*ones(3,1); % Standard Deviation of Initial Velocity Estimate
+sigmaPos = 1.0e-1*ones(3,1); % Standard Deviation of Initial Position Estimate
+sigmaVel = 1.0e-2*ones(3,1); % Standard Deviation of Initial Velocity Estimate
 covPos = sigmaPos.^2;        % Variance of Position Estimate
 covVel = sigmaVel.^2;        % Variance of Velocity Estimate
 
@@ -107,10 +113,14 @@ Nstep = length(t);              % Number of time steps
 %% Calculate Initial Trajectory and Observations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Set Parameters
+% Set All Parameters
 params.muE = muE;
 params.rE = rE;
 params.wE = wE;
+params.rhoFun = rhoFun;
+params.Cd = Cd;
+params.A = A;
+params.m = m;
 
 % Preallocate Nonlinear Trajectories
 Xnl = zeros(Nstep,nStates,nSats);

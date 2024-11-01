@@ -1,4 +1,4 @@
-function [satScen,initElems,initStates] = initialOrbits(S)
+function [satScen,initElems,initStates] = initialOrbits(S,varargin)
 %initialOrbits takes in an initial orbit generation structure consisting of
 % the function name, the required arguments, and names for the satellites and
 % outputs a handle to the satellite scenario, initial orbital elements, the
@@ -13,6 +13,7 @@ function [satScen,initElems,initStates] = initialOrbits(S)
 %     .  phasing - Phasing between satellites
 %     .   argLat - Argument of latitude in degrees
 %     . satNames - String describing name of satellite constellation
+% varargin - {1} [1,m] String vector of state variable names
 % OUTPUT:
 %    satScen - Satellite scenario object
 %  initElems - [n,7] Matrix of initial orbital elements with the columns:
@@ -24,7 +25,8 @@ function [satScen,initElems,initStates] = initialOrbits(S)
 %             omega - Argument of periapsis
 %                nu - True anomaly
 %                 P - Period
-% initStates - [n,6] Matrix of initial states, the positions and velocities
+% initStates - [n,m] Matrix of initial states for each satellite
+%
 % note: this will change when drag is added, have a separate function for drag
 % TODO Account for drag and density parameters
 
