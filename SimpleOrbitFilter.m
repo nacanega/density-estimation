@@ -42,7 +42,7 @@ satNames = "Iridium"; % Name String
 % For Integration
 t0 = 0;           % Initial Time [s]
 numPeriods = 1; % Number of periods to calculate
-dt = 60;           % Time Step [s]
+dt = 1;           % Time Step [s]
 
 % Set System Functions
 XdotNL = @stateEQ_drag_6s7p;
