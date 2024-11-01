@@ -29,6 +29,9 @@ data/
 /untitled*
 /test*
 
+# Ignore Syncfiles
+/SyncToy*
+
 # Windows default autosave extension
 *.asv
 
