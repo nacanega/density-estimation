@@ -19,8 +19,16 @@ results/
 # Ignore data subdirectory
 data/
 
+# Ignore old subdirectory
+old/
+obsolete/
+antiquated/
+
 # Ignore tasks.md
 /tasks.md
+/TASKS.md
+/todo.md
+/TODO.md
 
 # Ignore vscode workspace
 *.code-workspace
