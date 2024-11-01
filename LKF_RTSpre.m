@@ -20,6 +20,7 @@ function [filSol,smoSol,addOut] = LKF_RTSpre(t,zs,initConds,dataMats,sysFuncs,op
 %           .  XdotPhidot - State derivative function handle
 %           .    vsIntFun - Variable step integration function handle
 %           .     odeOpts - Default odeset options for vsIntFun
+%           .      params - Structure of parameters for state equations
 %      opts - Structure of filter options
 %           .     tol - tolerance to stop iteratively smoothing
 %           . maxIter - maximum number of iterations for filter/smoother
@@ -120,6 +121,16 @@ XdotPhidot = sysFuncs.XdotPhidot;
 vsIntFun = sysFuncs.vsIntFun;
 odeOpts = sysFuncs.odeOpts;
 
+if nargin(XdotPhidot) == 2
+    dotFunc = XdotPhidot;
+elseif nargin(XdotPhidot) == 3
+    dotFunc = @(t,X) XdotPhidot(t,X,sysFuncs.params); 
+else
+    eid = "Input:invalidArgumentNumber";
+    msg = "This shouldn't be possible.";
+    error(eid,msg);
+end
+
 % Load Filter Options
 tol = opts.tol;
 maxIter = opts.maxIter;
@@ -197,7 +208,7 @@ while  maxDiff > tol && iter < maxIter && numInc < maxInc
             XpredPhi0 = [X_pred0;reshape(Phis(:,:,1),[],1)];
 
             % Update reference trajectory and STM
-            [~,XpredsPhis] = vsIntFun(XdotPhidot,t,XpredPhi0,odeOpts);
+            [~,XpredsPhis] = vsIntFun(dotFunc,t,XpredPhi0,odeOpts);
 
             % Extract
             X_preds = XpredsPhis(:,1:M);
@@ -396,7 +407,8 @@ function mustBeValidOdeset(A)
 % Checks if fields are consistent with odeset
     if ~isequal(fieldnames(odeset()),fieldnames(A))
         eid = "Fields:notMatchingOdeset";
-        msg = "Ensure ode options are created using odeset before changing values.";
+        msg = "Ensure ode options are created using odeset before changing" ...
+            + " values.";
         error(eid,msg)
     end
 end
@@ -430,10 +442,43 @@ function mustBeValidSysFuncs(sysFuncs)
 % Checks if fields are consistent with system functions
 % TODO add fieldname validation
     mustBeValidFunction(sysFuncs.XdotPhidot)
-    mustBeFunctionofTimeAndState(sysFuncs.XdotPhidot)
+    if nargin(sysFuncs.XdotPhidot) == 3
+        if ~isfield(sysFuncs,"params")
+            eid = "Fields:missingParametersField";
+            msg = "State function needs parameters specified.";
+            error(eid,msg)
+        end
+    else
+        mustBeFunctionofTimeAndState(sysFuncs.XdotPhidot)
+        if ~isfield(sysFuncs,"params")
+            wid = "Fields:specifiedParametersUnused";
+            msg = "Specified state function does not require parameters.";
+            warning(wid,msg)
+        end
+    end
     mustBeValidFunction(sysFuncs.vsIntFun)
     mustBeOdeFunction(sysFuncs.vsIntFun)
     mustBeValidOdeset(sysFuncs.odeOpts)
+    if isfield(sysFuncs,"params")
+        if ~isstruct(sysFuncs.params)
+            eid = "Type:paramsMustBeStruct";
+            msg = "System function parameters must be specified in a " + ...
+                "structure.";
+            error(eid,msg)
+        end
+        if nargin(sysFuncs.XdotPhidot) == 2
+            if ~isfield(sysFuncs,"params")
+                wid = "Fields:specifiedParametersUnused";
+                msg = "Specified parameters unused by state function.";
+                warning(wid,msg)
+            end           
+        elseif nargin(sysFuncs.XdotPhidot) ~= 3
+            eid = "Function:mustHaveThreeInputs";
+            msg = "System function must accept three input arguments:" + ... 
+            " time, state, and parameters.";
+            error(eid,msg)
+        end     
+    end
 end
 
 function mustBeValidOpts(opts)

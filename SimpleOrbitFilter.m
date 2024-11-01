@@ -5,6 +5,20 @@ clear; clc; close all;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Constants and Parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%#ok<*UNRCH> % Flag to suppress unreachable code warning
+% Flags
+saveFig = true; % Whether or not to save figures
+saveRes = true; % Whether or not to save results
+closeAfterSave = true; % Whether or not to close figures after saving
+figfmt = "png"; % Format to save figures:
+% Recommended: "fig" or "mfig", "jpeg" or "png", "pdf" or "svg"
+
+% RNG Setting for reproducibility
+seed = 0;              % Random number seed
+generator = "twister"; % Random number generator
+rng(seed,generator)
+
+% Parameters
 muE = 398600.4415; % Earth gravitational parameter [km^3/s^2]
 rE = 6378.1363;    % Earth radius [km]
 wE = (2*pi)/86164.0905308; % Earth angular velocity (about z) [rad/s]
@@ -93,13 +107,18 @@ Nstep = length(t);              % Number of time steps
 %% Calculate Initial Trajectory and Observations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Set Parameters
+params.muE = muE;
+params.rE = rE;
+params.wE = wE;
+
 % Preallocate Nonlinear Trajectories
 Xnl = zeros(Nstep,nStates,nSats);
 
 % Calculate Nonlinear Trajectories
 for i = nSats:-1:1
     X0 = initStates(i,:).';
-    [~,Xnl(:,:,i)] = vsIntFun(XdotNL,t,X0,odeOpts);
+    [~,Xnl(:,:,i)] = vsIntFun(@(t,X) XdotNL(t,X,params),t,X0,odeOpts);
 end
 
 % Create Observations
@@ -137,6 +156,7 @@ dataMats.Htype = Htype;
 sysFuncs.XdotPhidot = XdotPhidot;
 sysFuncs.vsIntFun = vsIntFun;
 sysFuncs.odeOpts = odeOpts;
+sysFuncs.params = params;
 
 % Set Remaining Filter Options
 opts.tol = smoTol;
@@ -186,23 +206,15 @@ if ~isfolder("results")
     mkdir("results")
 end
 
-if isfile("results\\" + saveString)
-    BigSave = false;
-else
-    BigSave = true;
+subDir = sprintf("results\\%s",satNames);
+if ~isfolder(subDir)
+    mkdir(subDir)
 end
 
-if BigSave
-    tic;
+if saveRes && ~isfile("results\\" + saveString)
     fprintf("Saving Workspace to file...\n")
+    tic;
     save("results\\"+saveString,"-v7.3")
-    cTime = toc;
-else
-    subDir = sprintf("results\\%s",satNames);
-    if ~isfolder(subDir)
-        mkdir(subDir)
-    end
-    tic
     for i = 1:nSats
         fprintf("Saving Satellite %d Results to file...\n",i)
         resultString = subDir + sprintf("\\satellite%d.mat",i);
@@ -210,8 +222,8 @@ else
         save(resultString,"temp","-v7.3");
     end
     cTime = toc;
+    fprintf("Results Saved in %02d:%06.3f\n\n",floor(cTime/60),mod(cTime,60))
 end
-fprintf("Results Saved in %02d:%06.3f\n\n",floor(cTime/60),mod(cTime,60))
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Clear Redundant Variables
@@ -219,9 +231,9 @@ fprintf("Results Saved in %02d:%06.3f\n\n",floor(cTime/60),mod(cTime,60))
 
 clear satFun inclin nSats nPlanes phasing argLat satNames
 clear Qdata Rdata Hdata Qtype Rtype Htype QRH
-clear XdotPhidot vsIntFun odeOpts
+clear X0 XdotPhidot vsIntFun odeOpts
 clear smoTol maxIter maxInc outIter outPmat
-clear BigSave subDir saveString 
+clear temp cTime BigSave subDir saveString resultString
 clear filtered smoothed add_info % These are the biggest
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -235,14 +247,12 @@ clear filtered smoothed add_info % These are the biggest
 %% Visualize Results
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-closeAfterSave = true;
-
 nSats = constellation.nSats;
 if ~isfolder("images")
     mkdir("images")
 end
 
-%% Smoothed trajectories
+% Smoothed trajectories
 close all;
 
 st = figure;
@@ -263,12 +273,14 @@ end
 hold off
 daspect([1 1 1])
 
-saveas(st,"images\\all_trajectories.png","png")
-%% View Satellite Scenario
+if saveFig
+    saveas(st,"images\\all_trajectories",figfmt)
+end
+% View Satellite Scenario
 
 ssv = satelliteScenarioViewer(satScen);
 
-%% Constellation Visualization
+% Constellation Visualization
 for sN = 1
     figure;
     surf(rE*Xs,rE*Ys,rE*Zs,"FaceColor",[0.3 0.3 0.3],"DisplayName","Earth")
@@ -304,8 +316,8 @@ for sN = 1
     daspect([1 1 1])
 end
 
-%% Trajectory Visualizations
-if closeAfterSave
+% Trajectory Visualizations
+if saveFig && closeAfterSave
     close all;
 end
 
@@ -341,13 +353,16 @@ for sN = 1:nSats
         "First Filter Iteration","First Smoother Iteration", ...
         "Last Filter Iteration","Last Smoother Iteration"]);
     lg.Layout.Tile = "East";
-    saveas(fs(sN),sprintf("images\\components%02d.png",sN),"png")
+    if saveFig
+        saveas(fs(sN),sprintf("images\\components%02d",sN),figfmt)
+    end
 end
 
-%% Error Visualizations
-if closeAfterSave
+if saveFig && closeAfterSave
     close all;
 end
+
+% Error Visualizations
 
 fd = zeros(nSats,1);
 
@@ -382,9 +397,19 @@ for sN = 1:nSats
         "First Filter Iteration","First Smoother Iteration", ...
         "Last Filter Iteration","Last Smoother Iteration"]);
     lg.Layout.Tile = "East";
-    saveas(fd(sN),sprintf("images\\error%02d.png",sN),"png")
+    if saveFig
+        saveas(fd(sN),sprintf("images\\error%02d",sN),figfmt)
+    end
 end
 
-if closeAfterSave
+if saveFig && closeAfterSave
     close all;
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Clear Redundant Variables
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+clear ax fd fs h i lg st sN tiles tTime Xs Ys Zs
+clear muE rE wE
+clear closeAfterSave saveFig saveRes 
