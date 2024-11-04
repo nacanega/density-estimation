@@ -1,5 +1,5 @@
-function xyzdot = stateEQ_drag_6s7p(~,xyz,params)
-%stateEQ_drag_6s7p is a function defining the state derivatives as a function
+function xyzdot = stateEQ_drag_9s6p(~,xyz,params)
+%stateEQ_drag_9s6p is a function defining the state derivatives as a function
 % of the existing state
 % INPUTS:
 %    xyz - [9,1] Current State

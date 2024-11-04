@@ -1,5 +1,5 @@
-function xyzPhidot = stateSTM_drag_6s7p(~,xyzPhi,params)
-%stateSTM_drag_6s7p is a function defining the state derivatives as a function
+function xyzPhidot = stateSTM_drag_9s6p(~,xyzPhi,params)
+%stateSTM_drag_9s6p is a function defining the state derivatives as a function
 % of the existing state
 % INPUTS:
 %    xyzPhi - [9+9*9,1] Current State and STM
@@ -17,7 +17,6 @@ function xyzPhidot = stateSTM_drag_6s7p(~,xyzPhi,params)
 muE = params.muE;
 rE = params.rE;
 wE = params.wE;
-rhoFun = params.rhoFun;
 Cd = params.Cd;
 A = params.A;
 m = params.m;

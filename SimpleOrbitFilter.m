@@ -3,10 +3,17 @@
 % MAE 586 - Atmospheric Density Estimation Project
 clear; clc; close all;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Add subdirectories to path
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+addpath("state_equations")
+addpath("filter_smoother")
+addpath("other_functions")
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Constants and Parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %#ok<*UNRCH> % Flag to suppress unreachable code warning
 % Flags
+clearPath = false; % Whether or not to clear path after running
 saveFig = true; % Whether or not to save figures
 saveRes = true; % Whether or not to save results
 closeAfterSave = true; % Whether or not to close figures after saving
@@ -423,3 +430,12 @@ end
 clear ax fd fs h i lg st sN tiles tTime Xs Ys Zs
 clear muE rE wE
 clear closeAfterSave saveFig saveRes 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Clear subdirectories to path
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if clearPath
+    rmpath("other_functions")
+    rmpath("filter_smoother")
+    rmpath("state_equations")
+end
