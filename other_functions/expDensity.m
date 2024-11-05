@@ -2,11 +2,11 @@ function [rho,varargout] = expDensity(h,varargin)
 %expDensity Implements the basic exponential atmospheric model from Vallado
 % which incorporates several bands
 %   INPUTS:
-%         h - [mxn] altitude [km]
+%         h - [m,n] altitude [km]
 %  varargin - placeholder to allow for interchangeability with more complex
 %             atmospheric density models
 %   OUTPUT:
-%       rho - [mxn] estimated density [kg/km^3]
+%       rho - [m,n] estimated density [kg/km^3]
 % varargout - {1} [mxn] derivative with respect to altitude [kg/km^4]
 %
 % From Table 8-4. Exponential Atmospheric Model 
