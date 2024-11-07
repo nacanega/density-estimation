@@ -452,7 +452,7 @@ function mustBeValidSysFuncs(sysFuncs)
         end
     else
         mustBeFunctionofTimeAndState(sysFuncs.XdotPhidot)
-        if ~isfield(sysFuncs,"params")
+        if isfield(sysFuncs,"params")
             wid = "Fields:specifiedParametersUnused";
             msg = "Specified state function does not require parameters.";
             warning(wid,msg)
