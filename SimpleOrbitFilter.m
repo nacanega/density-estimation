@@ -205,8 +205,7 @@ if runCalc
     tTime = toc(t1);
     clc;
     fprintf("Finished Calculations for all Satellites in %02d:%02d:%06.3f\n\n",...
-        floor(tTime/3600),floor(mod(tTime,3600)/60),mod(tTime,60))
-            
+        floor(tTime/3600),floor(mod(tTime,3600)/60),mod(tTime,60))    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Prepare Folder to Save
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -302,12 +301,14 @@ if geneFig && (runCalc || fileLoaded)
     for i = 1:nSats
         if strcmp(opts.outIter,"last")
             %plot3(Xnl(:,1,i),Xnl(:,2,i),Xnl(:,3,i),":")
-            plot3(satSol(i).smoothed.X(:,1),satSol(i).smoothed.X(:,2),...
-                satSol(i).smoothed.X(:,3))
+            plot3(satSol(i).smoothed.X(:,1), ...
+                  satSol(i).smoothed.X(:,2),...
+                  satSol(i).smoothed.X(:,3))
         else
             %plot3(Xnl(:,1,i),Xnl(:,2,i),Xnl(:,3,i),":")
-            plot3(satSol(i).smoothed.X{1}(:,1),satSol(i).smoothed.X{1}(:,2),...
-                satSol(i).smoothed.X{1}(:,3))
+            plot3(satSol(i).smoothed.X{1}(:,1), ...
+                  satSol(i).smoothed.X{1}(:,2), ...
+                  satSol(i).smoothed.X{1}(:,3))
         end
     end
     hold off
@@ -323,7 +324,7 @@ if geneFig && (runCalc || fileLoaded)
     % Constellation Visualization
     for sN = 1
         figure;
-        surf(params.rE*Xs,params.rE*Ys,params.rE*Zs, ...
+        surf(rE*Xs,rE*Ys,rE*Zs, ...
             "FaceColor",[0.3 0.3 0.3],"DisplayName","Earth")
         hold on
         plot3(Xnl(:,1,sN),Xnl(:,2,sN),Xnl(:,3,sN), ...
