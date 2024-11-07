@@ -73,10 +73,7 @@ dadrD = Dconst*drhodh*vRs.*rhat.';
 dadvD = Dconst*rho*(I + vRhat.*vRhat.');
 
 % Model Contribution
-dadM = zeros(3);
-daxdrho0 = [];
-daxdh0 = [];
-daxdH = [];
+dadM = Dconst*rho*vRs./[rho0,H,H*(H/(h-h0))];
 
 % Sum acceleration components
 dadr = dadrG + dadrD;
