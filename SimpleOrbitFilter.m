@@ -1,6 +1,9 @@
 % Nolan Canegallo
 % SimpleOrbitFilter.m
 % MAE 586 - Atmospheric Density Estimation Project
+if exist("ssv","var") == 1 
+    delete(ssv)
+end
 clear; clc; close all;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Add subdirectories to path

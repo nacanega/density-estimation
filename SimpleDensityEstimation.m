@@ -1,6 +1,9 @@
 % Nolan Canegallo
 % SimpleDensityEstimation.m
 % MAE 586 - Atmospheric Density Estimation Project
+if exist("ssv","var") == 1 
+    delete(ssv)
+end
 clear; clc; close all;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Add subdirectories to path
@@ -34,9 +37,14 @@ if runCalc
     wE = (2*pi)/86164.0905308; % Earth angular velocity (about z) [rad/s]
 
     % Parameters for drag (all satellites the same)
-    Cd = 2.17;                 % Nominal Drag coefficient
-    A = 1e1*1e-6;                % Cross sectional area [km^2]
-    m = 4;                     % Mass [kg]
+    sysParams = ["C_D","A","m"];
+    Cd = 2.17;             % Nominal Drag coefficient
+    sigmaCD = 1e-2;        % Deviation of Drag Coefficient
+    A = 1e1*1e-6;          % Cross sectional area [km^2]
+    sigmaArea = 1e-1*1e-6; % Deviation of Area [km^2]
+    m = 4;                 % Mass [kg]
+    sigmaMass = 1e-1;      % Deviation of Mass [kg]
+    defaultParams = [Cd A m];
 
     % For Satellite Constellation
     satFun = @walkerStar; % Function to generate constellation
@@ -63,7 +71,7 @@ if runCalc
     smoTol = 1e-6;
     maxIter = 100;
     maxInc = 10;
-    outIter = "all"; % all or last % WARNING all uses a lot of RAM
+    outIter = "last"; % all or last % WARNING all uses a lot of RAM
     outPmat = "all"; % all or none
 
     % Matrix Options
@@ -72,7 +80,7 @@ if runCalc
     covMeas = sigmaMeas.^2;       % Variance of Position Measurement
 
     % For P matrix
-    sigmaMod = [1e-2;1e-1;1e-1]; % Standard Deviation of Initial Model Estimate
+    sigmaMod = [1e-3;1e+2;1e+1]; % Standard Deviation of Initial Model Estimate
     sigmaPos = 1.0e-1*ones(3,1); % Standard Deviation of Initial Position Estimate
     sigmaVel = 1.0e-2*ones(3,1); % Standard Deviation of Initial Velocity Estimate
     covMod = sigmaMod.^2;        % Variance of Model Estimate
@@ -111,7 +119,8 @@ if runCalc
     constellation.satNames = satNames;
 
     % Generate Satellite Initial States
-    [satScen,initElems,initStates,initParams] = initialOrbits(constellation);
+    [satScen,initElems,initStates,varParams] = ...
+        initialOrbits(constellation,states,sysParams,defaultParams);
 
     % Use Initial Orbits to Prepare for Dataset Generation
     tf = numPeriods*initElems(1,7); % Final Time
@@ -121,17 +130,14 @@ if runCalc
 %% Calculate Initial Trajectory and Observations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Set all Parameters
-    params.muE = muE;
-    params.rE = rE;
-    params.wE = wE;
-    params.Cd = Cd;
-    params.A = A;
-    params.m = m;
-
-    % Set constant parameters
-    tparams.muE = params.muE;
-    tparams.rE = params.rE;
-    tparams.wE = params.wE;
+    for i = nSats:-1:1
+        params(i).muE = muE;
+        params(i).rE = rE;
+        params(i).wE = wE;
+        params(i).Cd = varParams(i,1) + sigmaCD*randn;
+        params(i).A = varParams(i,2) + sigmaArea*randn;
+        params(i).m = varParams(i,3) + sigmaMass*randn;
+    end
 
     % Preallocate Nonlinear Trajectories
     Xnl = zeros(Nstep,nStates,nSats);
@@ -139,17 +145,15 @@ if runCalc
     % Calculate Nonlinear Trajectories
     for i = nSats:-1:1
         X0 = initStates(i,:).';
-        tparams.Cd = params.Cd(i);
-        tparams.A = params.A(i);
-        tparams.m = params.m(i);
-        [~,Xnl(:,:,i)] = vsIntFun(@(t,X) XdotNL(t,X,tparams),t,X0,odeOpts);
+        [~,Xnl(:,:,i)] = vsIntFun(@(t,X) XdotNL(t,X,params(i)),t,X0,odeOpts);
     end
 
     % Create Observations
     zs = Xnl(:,4:6,:) + sigmaMeas.'.*randn(Nstep,obs,nSats);
 
     % Set Initial Conditions
-    X_est0 = squeeze(Xnl(1,:,:)).' + [sigmaMod;sigmaPos;sigmaVel].'.*randn(nSats,nStates);
+    X_est0 = squeeze(Xnl(1,:,:)).' ...
+        + [sigmaMod;sigmaPos;sigmaVel].'.*randn(nSats,nStates);
     dx_est0 = zeros(nSats,nStates);
     P_0 = diag([covMod;covPos;covVel]).*ones(1,1,nSats);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -178,7 +182,6 @@ if runCalc
     sysFuncs.XdotPhidot = XdotPhidot;
     sysFuncs.vsIntFun = vsIntFun;
     sysFuncs.odeOpts = odeOpts;
-    sysFuncs.params = params;
 
     % Set Remaining Filter Options
     opts.tol = smoTol;
@@ -194,14 +197,20 @@ if runCalc
 
     t1 = tic;
     % Perform Filtering for each satellite
-    parfor i = 1:nSats % can change to parfor for now
+    for i = 1:nSats % can change to parfor for now
         % In the future, we will need to assemble the matrices and state vector
         fprintf("Calculating LKF_RTSpre Pass for Satellite %d ...\n",nSats-i+1)
+
         % Set Initial Conditions
         initConds = struct();
         initConds.X_est0 = X_est0(i,:).';
         initConds.dx_est0 = dx_est0(i,:).';
         initConds.P_0 = P_0(:,:,i);
+
+        % Set Parameters
+        sysFuncs.params = params(i);
+        
+        % Perform Calculations
         t2 = tic;
         [filtered{i},smoothed{i},add_info{i}] = ...
             LKF_RTSpre(t,zs(:,:,i),initConds,dataMats,sysFuncs,opts);
@@ -221,6 +230,8 @@ if runCalc
         "%s_R-%s_H-%s.mat",satNames,func2str(satFun),nSats,func2str(vsIntFun), ...
         func2str(XdotNL),func2str(XdotPhidot),outIter,outPmat,numPeriods,dt,...
         Qtype,Rtype,Htype);
+
+    sysFuncs.params = params;
 
     if ~isfolder("results")
         mkdir("results")
@@ -468,6 +479,8 @@ if geneFig && (runCalc || fileLoaded)
             saveas(fd(sN),sprintf("images/error%02d",sN),figfmt)
         end
     end
+    
+    % Model Visualizations
 
     cTime = toc;
     fprintf("Finished Figure generation in %02d:%02d:%06.3f\n\n", ...

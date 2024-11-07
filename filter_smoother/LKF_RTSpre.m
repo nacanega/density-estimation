@@ -58,6 +58,8 @@ end
 X_est0 = initConds.X_est0;
 dx_est0 = initConds.dx_est0;
 P_0 = initConds.P_0;
+% Swtiched to normalized maximum difference
+order = 10.^floor(log10(X_est0));
 
 % Get sizes for indexing and preallocation
 M = size(X_est0,1);
@@ -254,7 +256,7 @@ while  maxDiff > tol && iter < maxIter && numInc < maxInc
     pMaxDiff = maxDiff;
 
     % Calculate Difference
-    maxDiff = max(abs(X_sms(1,:).'-X_pred0));
+    maxDiff = max((abs(X_sms(1,:).'-X_pred0))./order);
 
     % Update numInc
     if maxDiff > pMaxDiff

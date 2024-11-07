@@ -76,7 +76,7 @@ if nargin > 1
                 [pos, vel] = states(sats(i));
                 r = norm(pos(:,1))/1e3;
                 modPs = densityParams(r);
-                initStates(i,:) = [modPs pos(:,1).' vel(:,1).']./1e3;
+                initStates(i,:) = [modPs pos(:,1).' vel(:,1).'];
             end
         otherwise
             eid = "States:undefinedStateSequence";
@@ -116,12 +116,12 @@ if nargout == 4
             initParams = initParams.*varargin{3};
         else
             % Use default paramters
-            for i = nSats:-1:-1
+            for i = nSats:-1:1
                 for j = nParams:-1:1
                     switch varargin{2}(j)
-                        case {"C_d","Cd","C_D","CD","DragCoefficient"}
+                        case {"C_D","CD","DragCoefficient"}
                             pName = "DragCoefficient";
-                        case {"A","A_d","A_D","Ad","AD","Area","area","DragArea"}
+                        case {"A","A_D","AD","Area","area","DragArea"}
                             pName = "DragArea";
                         case {"C_R","CR","ReflectivityCoefficient"}
                             pName = "ReflectivityCoefficient";

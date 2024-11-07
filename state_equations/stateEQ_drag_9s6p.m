@@ -40,7 +40,7 @@ r = sqrt(rs.'*rs);
 vs = xyz(7:9);
 vAs = cross(wA,rs);
 vRs = vs-vAs;
-vR = norm(vRs);
+vR = sqrt(vRs.'*vRs);
 
 % Densities
 h = r-rE;

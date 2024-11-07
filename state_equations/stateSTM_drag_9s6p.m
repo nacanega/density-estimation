@@ -28,21 +28,20 @@ wA = [0;0;wE];
 xyzPhidot = zeros(size(xyzPhi));
 
 % Density parameters
-rho0 = xyz(1); 
-h0 = xyz(2);
-H = xyz(3);
+rho0 = xyzPhi(1); 
+h0 = xyzPhi(2);
+H = xyzPhi(3);
 
 % Positions
-rx = xyzPhi(4); ry = xyzPhi(5); rz = xyzPhi(6);
-rs = [rx;ry;rz];
-r = norm(rs);
+rs = xyzPhi(4:6);
+r = sqrt(rs.'*rs);
 rhat = rs./r;
 
 % Velocities
 vs = xyzPhi(7:9);
 vAs = cross(wA,rs);
 vRs = vs-vAs;
-vR = norm(vRs);
+vR = sqrt(vRs.'*vRs);
 vRhat = vRs./vR;
 
 % Density
