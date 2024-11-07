@@ -1,4 +1,4 @@
-function [satScen,initElems,initStates] = initialOrbits(S,varargin)
+function [satScen,initElems,initStates,varargout] = initialOrbits(S,varargin)
 %initialOrbits takes in an initial orbit generation structure consisting of
 % the function name, the required arguments, and names for the satellites and
 % outputs a handle to the satellite scenario, initial orbital elements, the
@@ -14,6 +14,8 @@ function [satScen,initElems,initStates] = initialOrbits(S,varargin)
 %     .   argLat - Argument of latitude in degrees
 %     . satNames - String describing name of satellite constellation
 % varargin - {1} [1,m] String vector of state variable names
+%          - {2} [1,p] String vector of system parameters
+%          - {3} [1,p] Vector of default values for system parameters
 % OUTPUT:
 %    satScen - Satellite scenario object
 %  initElems - [n,7] Matrix of initial orbital elements with the columns:
@@ -26,9 +28,10 @@ function [satScen,initElems,initStates] = initialOrbits(S,varargin)
 %                nu - True anomaly
 %                 P - Period
 % initStates - [n,m] Matrix of initial states for each satellite
-%
-% note: this will change when drag is added, have a separate function for drag
-% TODO Account for drag and density parameters
+%  varargout - {1} [n,p] Matrix of parameters for each satellite
+% TODO add validation
+narginchk(1,4)
+nargoutchk(3,4)
 
 satScen = satelliteScenario;
 satFun = S.satFun;
@@ -46,6 +49,7 @@ end
 % Iterate over each satellite and obtain elements
 nSats = length(sats);
 
+% Set orbital elements
 for i = nSats:-1:1
     OEs = orbitalElements(sats(i));
     initElems(i,1) = OEs.SemiMajorAxis;
@@ -55,8 +59,86 @@ for i = nSats:-1:1
     initElems(i,5) = OEs.ArgumentOfPeriapsis;
     initElems(i,6) = OEs.TrueAnomaly;
     initElems(i,7) = OEs.Period;
-    [pos, vel] = states(sats(i));
-    initStates(i,:) = [pos(:,1).' vel(:,1).']./1e3;
 end
 
+% Different states depending on how many states we have
+if nargin > 1
+    % We have a different number of states defined in varagin{1}
+    switch varargin{1}
+        case ["r_x","r_y","r_z","v_x","v_y","v_z"]
+            % We can use the standard states
+            for i = nSats:-1:1
+                [pos, vel] = states(sats(i));
+                initStates(i,:) = [pos(:,1).' vel(:,1).']./1e3;
+            end
+        case ["rho_0","h_0","H","r_x","r_y","r_z","v_x","v_y","v_z"]
+            for i = nSats:-1:1
+                [pos, vel] = states(sats(i));
+                r = norm(pos(:,1))/1e3;
+                modPs = densityParams(r);
+                initStates(i,:) = [modPs pos(:,1).' vel(:,1).']./1e3;
+            end
+        otherwise
+            eid = "States:undefinedStateSequence";
+            msg = "State vector not recognized, please check for typos, " + ...
+                "edit this file to include the case. Alternatively, " + ...
+                "construct your initial states manually by calling " + ...
+                "without the state and parameter vectors.";
+            error(eid,msg)
+    end
+else
+    % We can use the standard states
+    for i = nSats:-1:1
+        [pos, vel] = states(sats(i));
+        initStates(i,:) = [pos(:,1).' vel(:,1).']./1e3;
+    end
+end
+
+% Different parameter outputs depending on which are specified
+if nargout == 4
+    % We are outputting parameters
+    if nargin == 1 || nargin == 2
+        % Parameters are not specified, output default
+        % Cd A m 
+        for i = nSats:-1:1
+            initParams(i,5) = sats(i).PhysicalProperties.Mass;
+            initParams(i,4) = sats(i).PhysicalProperties.SRPArea;
+            initParams(i,3) = sats(i).PhysicalProperties.ReflectivityCoefficient;
+            initParams(i,2) = sats(i).PhysicalProperties.DragArea;
+            initParams(i,1) = sats(i).PhysicalProperties.DragCoefficient;
+        end
+    else
+        % Parameters are specified
+        nParams = length(varargin{2});
+        if nargin == 4
+            % Use specified parameters
+            initParams = ones(nSats,nParams);
+            initParams = initParams.*varargin{3};
+        else
+            % Use default paramters
+            for i = nSats:-1:-1
+                for j = nParams:-1:1
+                    switch varargin{2}(j)
+                        case {"C_d","Cd","C_D","CD","DragCoefficient"}
+                            pName = "DragCoefficient";
+                        case {"A","A_d","A_D","Ad","AD","Area","area","DragArea"}
+                            pName = "DragArea";
+                        case {"C_R","CR","ReflectivityCoefficient"}
+                            pName = "ReflectivityCoefficient";
+                        case {"A_R","AR","SRPArea"}
+                            pName = "SRPArea";
+                        case {"m","m_s","m_S","M","M_s","M_S","mass","Mass"}
+                            pName = "Mass";
+                        otherwise
+                            eid = "Parameter:undefinedSatelliteParameter";
+                            error(eid, ...
+                                "'%s' is an undefined satellite parameter", ...
+                                varargin{2}(j))
+                    end
+                    initParams(i,j) = sats(i).PhysicalProperties.(pName);
+                end
+            end
+        end
+    end
+    varargout{1} = initParams;
 end
