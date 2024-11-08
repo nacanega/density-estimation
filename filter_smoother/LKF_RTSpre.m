@@ -59,7 +59,7 @@ X_est0 = initConds.X_est0;
 dx_est0 = initConds.dx_est0;
 P_0 = initConds.P_0;
 % Swtiched to normalized maximum difference
-order = 10.^floor(log10(X_est0));
+order = 10.^floor(log10(abs(X_est0)));
 
 % Get sizes for indexing and preallocation
 M = size(X_est0,1);
