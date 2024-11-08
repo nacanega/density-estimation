@@ -27,22 +27,22 @@ wA = [0;0;wE];
 % Preallocate
 xyzPhidot = zeros(size(xyzPhi));
 
-% Density parameters
-rho0 = xyzPhi(1); 
-h0 = xyzPhi(2);
-H = xyzPhi(3);
-
 % Positions
-rs = xyzPhi(4:6);
+rs = xyzPhi(1:3);
 r = sqrt(rs.'*rs);
 rhat = rs./r;
 
 % Velocities
-vs = xyzPhi(7:9);
+vs = xyzPhi(4:6);
 vAs = cross(wA,rs);
 vRs = vs-vAs;
 vR = sqrt(vRs.'*vRs);
 vRhat = vRs./vR;
+
+% Density parameters
+rho0 = xyzPhi(1); 
+h0 = xyzPhi(2);
+H = xyzPhi(3);
 
 % Density
 h = r-rE;
@@ -50,9 +50,9 @@ rho = rho0.*exp((h0-h)/H);
 drhodh = -rho/H;
 
 % State Derivatives
-xyzPhidot(1:3) = zeros(3,1);
-xyzPhidot(4:6) = vs;
-xyzPhidot(7:9) = -(muE/r^3)*rs - (0.5*rho*Cd*A/m)*vR*vRs;
+xyzPhidot(1:3) = vs;
+xyzPhidot(4:6) = -(muE/r^3)*rs - (0.5*rho*Cd*A/m)*vR*vRs;
+%xyzPhidot(7:9) = zeros(3,1);
 
 % Phi = reshape(xyzPhi(7:end),[6 6])
 Z = zeros(3);
@@ -79,9 +79,9 @@ dadr = dadrG + dadrD;
 dadv = dadvG + dadvD;
 
 % Assemble F matrix
-F = [   Z,   Z,   Z;...
-        Z,dvdr,dvdv;...
-     dadM,dadr,dadv];
+F = [dvdr, dvdv,    Z; ...
+     dadr, dadv, dadM; ...
+        Z,    Z,    Z];
 
 % State derivatives
 xyzPhidot(10:end) = reshape(F,size(xyzPhi(10:end)));
