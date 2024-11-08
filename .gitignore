@@ -1,0 +1,73 @@
+# Ignore image files
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.pdf
+*.fig
+*.mfig
+
+# Ignore livescripts
+*.mlx
+
+# Ignore image subdirectory
+images/
+
+# Ignore results subdirectory
+results/
+
+# Ignore data subdirectory
+data/
+
+# Ignore old subdirectory
+old/
+obsolete/
+antiquated/
+
+# Ignore tasks.md
+/tasks.md
+/TASKS.md
+/todo.md
+/TODO.md
+
+# Ignore vscode workspace
+*.code-workspace
+
+# Ignore prototyping files
+/untitled*
+/test*
+
+# Ignore Syncfiles
+/SyncToy*
+
+# Windows default autosave extension
+*.asv
+
+# OSX / *nix default autosave extension
+*.m~
+
+# Compiled MEX binaries (all platforms)
+*.mex*
+
+# Packaged app and toolbox files
+*.mlappinstall
+*.mltbx
+
+# Generated helpsearch folders
+helpsearch*/
+
+# Simulink code generation folders
+slprj/
+sccprj/
+
+# Matlab code generation folders
+codegen/
+
+# Simulink autosave extension
+*.autosave
+
+# Simulink cache files
+*.slxc
+
+# Octave session info
+octave-workspace
