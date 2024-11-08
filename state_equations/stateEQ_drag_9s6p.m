@@ -27,20 +27,20 @@ wA = [0;0;wE];
 % Preallocate
 xyzdot = zeros(size(xyz));
 
-% Density parameters
-rho0 = xyz(1); 
-h0 = xyz(2);
-H = xyz(3);
-
 % Positons
-rs = xyz(4:6);
+rs = xyz(1:3);
 r = sqrt(rs.'*rs);
 
 % Velocities
-vs = xyz(7:9);
+vs = xyz(4:6);
 vAs = cross(wA,rs);
 vRs = vs-vAs;
 vR = sqrt(vRs.'*vRs);
+
+% Density parameters
+rho0 = xyz(7); 
+h0 = xyz(8);
+H = xyz(9);
 
 % Densities
 h = r-rE;
@@ -48,8 +48,8 @@ rho = rho0.*exp((h0-h)/H);
 %drhodh = -rho/H;
 
 % State Derivatives
-xyzdot(1:3) = zeros(3,1);
-xyzdot(4:6) = vs;
-xyzdot(7:9) = -(muE/r^3)*rs - (0.5*rho*Cd*A/m)*vR*vRs;
+xyzdot(1:3) = vs;
+xyzdot(4:6) = -(muE/r^3)*rs - (0.5*rho*Cd*A/m)*vR*vRs;
+%xyzdot(7:9) = zeros(3,1);
 
 end

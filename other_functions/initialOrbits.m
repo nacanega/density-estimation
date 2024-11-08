@@ -71,12 +71,13 @@ if nargin > 1
                 [pos, vel] = states(sats(i));
                 initStates(i,:) = [pos(:,1).' vel(:,1).']./1e3;
             end
-        case ["rho_0","h_0","H","r_x","r_y","r_z","v_x","v_y","v_z"]
+        case ["r_x","r_y","r_z","v_x","v_y","v_z","rho_0","h_0","H"]
             for i = nSats:-1:1
                 [pos, vel] = states(sats(i));
-                r = norm(pos(:,1))/1e3;
+                pos = pos*1e-3; vel = vel*1e-3;
+                r = norm(pos(:,1));
                 modPs = densityParams(r);
-                initStates(i,:) = [modPs pos(:,1).' vel(:,1).'];
+                initStates(i,:) = [pos(:,1).' vel(:,1).' modPs];
             end
         otherwise
             eid = "States:undefinedStateSequence";
