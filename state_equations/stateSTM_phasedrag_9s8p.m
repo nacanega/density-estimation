@@ -45,7 +45,7 @@ vR = norm(vRs);
 vRhat = vRs./vR;
 
 % Density
-[rho,drhodh] = phaseDensity(~,r,lambda);
+[rho,drhodh] = rhoFun(~,r,lambda);
 
 % State Derivatives
 xyzPhidot(1:3) = vs;
