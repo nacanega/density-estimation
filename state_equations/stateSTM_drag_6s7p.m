@@ -50,7 +50,8 @@ h = r-rE;
 xyzPhidot(1:3) = vs;
 xyzPhidot(4:6) = -(muE/r^3)*rs - (0.5*rho*Cd*A/m)*vR*vRs;
 
-% Phi = reshape(xyzPhi(7:end),[6 6])
+Phi = reshape(xyzPhi(7:end),[6 6]);
+
 Z = zeros(3);
 I = eye(3);
 
@@ -76,6 +77,6 @@ F = [dvdr,dvdv;...
      dadr,dadv];
 
 % State derivatives
-xyzPhidot(7:end) = reshape(F,size(xyzPhi(7:end)));
+xyzPhidot(7:end) = reshape(F*Phi,size(xyzPhi(7:end)));
 
 end
