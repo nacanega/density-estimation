@@ -14,11 +14,54 @@ function sConstell = initialConstell(constName)
 %           .  phasing - Phasing between satellites
 %           .   argLat - Argument of latitude in degrees
 %           . satNames - String describing name of satellite constellation
+%         - Alternate arguments for single satellite
+%           .   satFun - Satellite constellation generation function handle
+%           .semimajor - Semimajor axis or orbit [km]
+%           .   eccent - Eccentricity
+%           .   inclin - Inclination of orbits in [deg]
+%           .     RAAN - Right Ascension of ascending node [deg]
+%           .  argPeri - Argument of periapsis [deg]
+%           . trueAnom - True Anomaly [deg]
+%           .    nSats - Total number of satellites
+%           . satNames - String describing name of satellite constellation
 arguments (Input)
     constName string = "Default"
 end
 
 switch constName
+    case {"single","Single"}
+        % Single Satellite
+        sConstell.satFun = @satellite;    % Single satellite orbit
+        sConstell.semimajor = 0;          % Radius in [km]
+        sConstell.eccent = 0;             % Eccentricity
+        sConstell.inclin = 0;             % Inclination [deg]
+        sConstell.RAAN = 0;               % Right ascension of ascending node [deg]
+        sConstell.argPeri = 0;            % Argument of periapsis [deg]
+        sConstell.trueAnom = 0;           % True anomaly [deg]
+        sConstell.nSats = 1;              % Number of satellites
+        sConstell.satNames = "Satellite"; % Satellite name
+    case {"singleCircular","SingleCircular"}
+        % Single Satellite Circular
+        sConstell.satFun = @satellite;   % Single satellite orbit
+        sConstell.semimajor = 8378.1363; % Radius in [km]
+        sConstell.eccent = 0;            % Eccentricity
+        sConstell.inclin = 28.5;         % Inclination [deg]
+        sConstell.RAAN = 0;              % Right ascension of ascending node [deg]
+        sConstell.argPeri = 0;           % Argument of periapsis [deg]
+        sConstell.trueAnom = 0;          % True anomaly [deg]
+        sConstell.nSats = 1;             % Number of satellites
+        sConstell.satNames = "Circular"; % Satellite name
+    case {"singleElliptical","SingleElliptical"}
+        % Single Satellite Elliptical
+        sConstell.satFun = @satellite;     % Single satellite orbit
+        sConstell.semimajor = 8378.1363;   % Radius in [km]
+        sConstell.eccent = 0.2;            % Eccentricity
+        sConstell.inclin = 28.5;           % Inclination [deg]
+        sConstell.RAAN = 0;                % Right ascension of ascending node [deg]
+        sConstell.argPeri = 0;             % Argument of periapsis [deg]
+        sConstell.trueAnom = 0;            % True anomaly [deg]
+        sConstell.nSats = 1;               % Number of satellites
+        sConstell.satNames = "Elliptical"; % Satellite name
     case {"Iridium","iridium"}
         % Satellite Constellation (Iridium)
         sConstell.satFun = @walkerStar; % Iridium has a Walker Star configuration

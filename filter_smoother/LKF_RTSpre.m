@@ -28,12 +28,12 @@ function [filSol,smoSol,addOut] = LKF_RTSpre(t,zs,initConds,dataMats,sysFuncs,op
 %           . outIter - "last" or "all", which iterations to output
 %           . outPmat - "none" or "all", which covariance matrices to output
 % OUTPUT:
-% filSol - Structure containing the linearized Kalman filter solution
+% filSol - Structure array containing the linearized Kalman filter solution
 %        .  X - The filtered/estimated state
 %        . dx - The filtered/estimated state uncertainty
 %        . bs - The filter innovation vectors
 %        .  P - The filtered/estimated covariance
-% smoSol - Structure containting the iteratively smoothed solution
+% smoSol - Structure array containting the iteratively smoothed solution
 %        .  X - The smoothed state
 %        . dx - The smoothed uncertainty
 %        .  P - The smoothed covariance
@@ -41,7 +41,7 @@ function [filSol,smoSol,addOut] = LKF_RTSpre(t,zs,initConds,dataMats,sysFuncs,op
 %        .      iter - The number of iterations performed
 %        .   maxDiff - The difference metrix for the initial state estimate
 %        . exitState - Why the filter stopped iterating
-
+% FIXME Change output to indexable structure
 % FIXME Add parameters input validation
 
 % Input Argument Validation
@@ -151,19 +151,34 @@ end
 if strcmp(outIter,"all")
     saveAll = true;
 
-    % Filtered Solution
-    filSol.X = zerosCell([maxIter,1],[M,1]);
-    filSol.dx = zerosCell([maxIter,1],[M,1]);
-    filSol.bs = zerosCell([maxIter,1],[N,K]);
+    if savePs % Add a P field
+        % Filtered Solution
+        filSol = struct( ...
+            "X", zerosCell([maxIter,1],[M,1]), ...
+            "dx",zerosCell([maxIter,1],[M,1]), ...
+            "P", zerosCell([maxIter,1],[M,M]), ...
+            "bs",zerosCell([maxIter,1],[N,K]) ...
+        );
 
-    % Smoothed Solution
-    smoSol.X = zerosCell([maxIter,1],[M,1]);
-    smoSol.dx = zerosCell([maxIter,1],[M,1]);
+        % Smoothed Solution
+        smoSol = struct( ...
+            "X", zerosCell([maxIter,1],[M,1]), ...
+            "dx",zerosCell([maxIter,1],[M,1]), ...
+            "P", zerosCell([maxIter,1],[M,M]) ...
+        );
+    else % Do not add a P field
+        % Filtered Solution
+        filSol = struct( ...
+            "X", zerosCell([maxIter,1],[M,1]), ...
+            "dx",zerosCell([maxIter,1],[M,1]), ...
+            "bs",zerosCell([maxIter,1],[N,K]) ...
+        );
 
-    % Covariance Matrices
-    if savePs
-        filSol.P = zerosCell([maxIter,1],[M,M]);
-        smoSol.P = zerosCell([maxIter,1],[M,M]);
+        % Smoothed Solution
+        smoSol = struct( ...
+            "X", zerosCell([maxIter,1],[M,1]), ...
+            "dx",zerosCell([maxIter,1],[M,1]) ...
+        );
     end
 
     % Additional Outputs
@@ -271,18 +286,18 @@ while  maxDiff > tol && iter < maxIter && numInc < maxInc
     % Add the current iteration to the output
     if saveAll
         % Filtered Solution
-        filSol.X{iter} = X_ests;
-        filSol.dx{iter} = dx_ests;
-        filSol.bs{iter} = bs;
+        filSol(iter).X = X_ests;
+        filSol(iter).dx = dx_ests;
+        filSol(iter).bs = bs;
 
         % Smoothed Solution
-        smoSol.X{iter} = X_sms;
-        smoSol.dx{iter} = dx_sms;
+        smoSol(iter).X = X_sms;
+        smoSol(iter).dx = dx_sms;
 
         % Covariance Matrices
         if savePs
-            filSol.P{iter} = P_ests;
-            smoSol.P{iter} = P_sms;
+            filSol(iter).P = P_ests;
+            smoSol(iter).P = P_sms;
         end
 
         % Additional Outputs
@@ -318,23 +333,14 @@ if maxDiff < tol
     addOut.exitState = "Filter Converged";
     if saveAll
         % Filtered Solution
-        filSol.X(iter+1:end) = [];
-        filSol.dx(iter+1:end) = [];
-        filSol.bs(iter+1:end) = [];
+        filSol(iter+1:end) = [];
 
         % Smoothed Solution
-        smoSol.X(iter+1:end) = [];
-        smoSol.dx(iter+1:end) = [];
-
-        % Covariance Matrices
-        if savePs
-            filSol.P(iter+1:end) = [];
-            smoSol.P(iter+1:end) = [];
-        end
+        smoSol(iter+1:end) = [];
 
         % Additional Outputs
         addOut.iter(iter+1:end) = [];
-        addOut.maxDiff(iter:end) = [];
+        addOut.maxDiff(iter+1:end) = [];
     end
 else
     if iter == maxIter

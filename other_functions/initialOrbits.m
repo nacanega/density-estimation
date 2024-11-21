@@ -6,12 +6,22 @@ function [satScen,initElems,initStates,varargout] = initialOrbits(S,varargin)
 % INPUTS:
 % S - structure containing required parameters for generating initial orbits
 %     .   satFun - Satellite constellation generation function handle
-%     .   radius - Radius of orbits in kilometers
-%     .   inclin - Inclination of orbits in degrees
+%     .   radius - Radius of orbits in [km]
+%     .   inclin - Inclination of orbits in [deg]
 %     .    nSats - Total number of satellites
 %     .  nPlanes - Number of geometry planes
 %     .  phasing - Phasing between satellites
 %     .   argLat - Argument of latitude in degrees
+%     . satNames - String describing name of satellite constellation
+%   - Alternate arguments for single satellite
+%     .   satFun - Satellite constellation generation function handle
+%     .semimajor - Semimajor axis or orbit [km]
+%     .   eccent - Eccentricity
+%     .   inclin - Inclination of orbits in [deg]
+%     .     RAAN - Right Ascension of ascending node [deg]
+%     .  argPeri - Argument of periapsis [deg]
+%     . trueAnom - True Anomaly [deg]
+%     .    nSats - Total number of satellites
 %     . satNames - String describing name of satellite constellation
 % varargin - {1} [1,m] String vector of state variable names
 %          - {2} [1,p] String vector of system parameters
@@ -27,6 +37,14 @@ function [satScen,initElems,initStates,varargout] = initialOrbits(S,varargin)
 %             omega - Argument of periapsis
 %                nu - True anomaly
 %                 P - Period
+% SingleSat - [n, e, i, RAAN, omega, M, P]
+%                 n - Mean motion
+%                 e - Eccentricity
+%                 i - Inclination
+%              RAAN - Right ascension of the ascending node
+%             omega - Argument of periapsis
+%                 M - Mean anomaly
+%                 P - Period
 % initStates - [n,m] Matrix of initial states for each satellite
 %  varargout - {1} [n,p] Matrix of parameters for each satellite
 % TODO add validation
@@ -37,11 +55,16 @@ satScen = satelliteScenario;
 satFun = S.satFun;
 satFunName = func2str(satFun);
 
-if strcmp(satFunName,"walkerDelta") || strcmp(satFunName,"walkerStar")
+switch satFunName
+    case {"walkerDelta", "walkerStar"}
     % walkerDelta or walkerStar
     sats = satFun(satScen, 1e3*S.radius, S.inclin, S.nSats, S.nPlanes, ...
         S.phasing, ArgumentofLatitude=S.argLat, Name=S.satNames);
-else
+    case "satellite"
+    % singleSat
+    sats = satFun(satScen, 1e3*S.semimajor, S.eccent, S.inclin,...
+        S.RAAN, S.argPeri, S.trueAnom, Name=S.satNames);
+    otherwise
     % Custom satFun
     sats = satFun(satScen,S);
 end
@@ -52,13 +75,23 @@ nSats = length(sats);
 % Set orbital elements
 for i = nSats:-1:1
     OEs = orbitalElements(sats(i));
-    initElems(i,1) = OEs.SemiMajorAxis;
+
+    % Common Elements
+    initElems(i,7) = OEs.Period;
     initElems(i,2) = OEs.Eccentricity;
     initElems(i,3) = OEs.Inclination;
     initElems(i,4) = OEs.RightAscensionOfAscendingNode;
     initElems(i,5) = OEs.ArgumentOfPeriapsis;
-    initElems(i,6) = OEs.TrueAnomaly;
-    initElems(i,7) = OEs.Period;
+    
+    % Different based on number of satellites...
+    if nSats > 1
+        initElems(i,1) = OEs.SemiMajorAxis;
+        initElems(i,6) = OEs.TrueAnomaly;
+    else
+        initElems(i,1) = OEs.MeanMotion;
+        initElems(i,6) = OEs.MeanAnomaly;
+    end
+    
 end
 
 % Different states depending on how many states we have
@@ -69,15 +102,24 @@ if nargin > 1
             % We can use the standard states
             for i = nSats:-1:1
                 [pos, vel] = states(sats(i));
-                initStates(i,:) = [pos(:,1).' vel(:,1).']./1e3;
+                pos = pos*1e-3; vel = vel*1e-3;
+                initStates(i,:) = [pos(:,1).' vel(:,1).'];
             end
-        case ["r_x","r_y","r_z","v_x","v_y","v_z","rho_0","h_0","H"]
+       case ["r_x","r_y","r_z","v_x","v_y","v_z","rho_0","h_0","H"]
             for i = nSats:-1:1
                 [pos, vel] = states(sats(i));
                 pos = pos*1e-3; vel = vel*1e-3;
                 r = norm(pos(:,1));
                 modPs = densityParams(r);
                 initStates(i,:) = [pos(:,1).' vel(:,1).' modPs];
+            end
+       case ["r_x","r_y","r_z","v_x","v_y","v_z","rho_0","H"]
+            for i = nSats:-1:1
+                [pos, vel] = states(sats(i));
+                pos = pos*1e-3; vel = vel*1e-3;
+                r = norm(pos(:,1));
+                modPs = densityParams(r);
+                initStates(i,:) = [pos(:,1).' vel(:,1).' modPs(1) modPs(3)];
             end
         otherwise
             eid = "States:undefinedStateSequence";
@@ -130,13 +172,19 @@ if nargout == 4
                             pName = "SRPArea";
                         case {"m","m_s","m_S","M","M_s","M_S","mass","Mass"}
                             pName = "Mass";
+                        case {"h0","H0","h_0","H_0"}
+                            calcP = true;
                         otherwise
                             eid = "Parameter:undefinedSatelliteParameter";
                             error(eid, ...
                                 "'%s' is an undefined satellite parameter", ...
                                 varargin{2}(j))
                     end
-                    initParams(i,j) = sats(i).PhysicalProperties.(pName);
+                    if calcP
+                        initParams(i,j) = norm(pos) - mod(pos,100); % h_0
+                    else
+                        initParams(i,j) = sats(i).PhysicalProperties.(pName);
+                    end
                 end
             end
         end

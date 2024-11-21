@@ -23,7 +23,8 @@ r = norm(rs);
 xyzPhidot(1:3) = xyzPhi(4:6);
 xyzPhidot(4:6) = -(muE/r^3)*rs;
 
-% Phi = reshape(xyzPhi(7:end),[6 6])
+Phi = reshape(xyzPhi(7:end),[6 6]);
+
 % Gravity contribution
 dvdr = zeros(3);
 dvdv = eye(3);
@@ -36,6 +37,6 @@ dadr = [ ...
 F = [dvdr dvdv; dadr dadv];
 
 % State Derivatives
-xyzPhidot(7:end) = reshape(F,size(xyzPhi(7:end)));
+xyzPhidot(7:end) = reshape(F*Phi,size(xyzPhi(7:end)));
 
 end
