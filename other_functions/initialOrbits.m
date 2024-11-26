@@ -121,6 +121,14 @@ if nargin > 1
                 modPs = densityParams(r);
                 initStates(i,:) = [pos(:,1).' vel(:,1).' modPs(1) modPs(3)];
             end
+        case ["r_x","r_y","r_z","v_x","v_y","v_z","rho_min","rho_max"]
+            for i = nSats:-1:1
+                [pos, vel] = states(sats(i));
+                pos = pos*1e-3; vel = vel*1e-3;
+                r = norm(pos(:,1));
+                [rhom, rhoM] = hpComponents(r - 6378.1363);
+                initStates(i,:) = [pos(:,1).' vel(:,1).' rhom rhoM];
+            end
         otherwise
             eid = "States:undefinedStateSequence";
             msg = "State vector not recognized, please check for typos, " + ...
