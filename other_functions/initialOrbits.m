@@ -57,16 +57,20 @@ satFunName = func2str(satFun);
 
 switch satFunName
     case {"walkerDelta", "walkerStar"}
-    % walkerDelta or walkerStar
-    sats = satFun(satScen, 1e3*S.radius, S.inclin, S.nSats, S.nPlanes, ...
-        S.phasing, ArgumentofLatitude=S.argLat, Name=S.satNames);
+        % walkerDelta or walkerStar
+        sats = satFun(satScen, 1e3*S.radius, S.inclin, S.nSats, S.nPlanes, ...
+            S.phasing, ArgumentofLatitude=S.argLat, Name=S.satNames);
     case "satellite"
-    % singleSat
-    sats = satFun(satScen, 1e3*S.semimajor, S.eccent, S.inclin,...
-        S.RAAN, S.argPeri, S.trueAnom, Name=S.satNames);
+        % singleSat
+        sats = satFun(satScen, 1e3*S.semimajor, S.eccent, S.inclin,...
+            S.RAAN, S.argPeri, S.trueAnom, Name=S.satNames);
+    case "doubleSat"
+        % doubleSat
+        sats = satFun(satScen, 1e3*S.semimajor, S.eccent, S.inclin,...
+            S.RAAN, S.argPeri, S.trueAnom, Name=S.satNames);
     otherwise
-    % Custom satFun
-    sats = satFun(satScen,S);
+        % Custom satFun
+        sats = satFun(satScen,S);
 end
 
 % Iterate over each satellite and obtain elements
@@ -110,7 +114,7 @@ if nargin > 1
                 [pos, vel] = states(sats(i));
                 pos = pos*1e-3; vel = vel*1e-3;
                 r = norm(pos(:,1));
-                modPs = densityParams(r);
+                modPs = densityParams(r-6378.1363);
                 initStates(i,:) = [pos(:,1).' vel(:,1).' modPs];
             end
        case ["r_x","r_y","r_z","v_x","v_y","v_z","rho_0","H"]
@@ -118,8 +122,16 @@ if nargin > 1
                 [pos, vel] = states(sats(i));
                 pos = pos*1e-3; vel = vel*1e-3;
                 r = norm(pos(:,1));
-                modPs = densityParams(r);
+                modPs = densityParams(r-6378.1363);
                 initStates(i,:) = [pos(:,1).' vel(:,1).' modPs(1) modPs(3)];
+            end
+       case ["r_x","r_y","r_z","v_x","v_y","v_z","rho_0","Hi"]
+            for i = nSats:-1:1
+                [pos, vel] = states(sats(i));
+                pos = pos*1e-3; vel = vel*1e-3;
+                r = norm(pos(:,1));
+                modPs = densityParams(r-6378.1363);
+                initStates(i,:) = [pos(:,1).' vel(:,1).' modPs(1) 1./modPs(3)];
             end
         otherwise
             eid = "States:undefinedStateSequence";

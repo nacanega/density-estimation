@@ -43,7 +43,7 @@ switch constName
     case {"singleCircular","SingleCircular"}
         % Single Satellite Circular
         sConstell.satFun = @satellite;   % Single satellite orbit
-        sConstell.semimajor = 8378.1363; % Radius in [km]
+        sConstell.semimajor = 7159.1363; % Radius in [km]
         sConstell.eccent = 0;            % Eccentricity
         sConstell.inclin = 28.5;         % Inclination [deg]
         sConstell.RAAN = 0;              % Right ascension of ascending node [deg]
@@ -62,6 +62,17 @@ switch constName
         sConstell.trueAnom = 0;            % True anomaly [deg]
         sConstell.nSats = 1;               % Number of satellites
         sConstell.satNames = "Elliptical"; % Satellite name
+    case {"doubleCircular","DoubleCircular"}
+        % Double Satellite Circular
+        sConstell.satFun = @doubleSat;   % Single satellite orbit
+        sConstell.semimajor = 7159.1363; % Radius in [km]
+        sConstell.eccent = 0;            % Eccentricity
+        sConstell.inclin = 28.5;         % Inclination [deg]
+        sConstell.RAAN = [0 180];        % Right ascension of ascending node [deg]
+        sConstell.argPeri = 0;           % Argument of periapsis [deg]
+        sConstell.trueAnom = 0;          % True anomaly [deg]
+        sConstell.nSats = 2;             % Number of satellites
+        sConstell.satNames = "Circular"; % Satellite name
     case {"Iridium","iridium"}
         % Satellite Constellation (Iridium)
         sConstell.satFun = @walkerStar; % Iridium has a Walker Star configuration
@@ -73,7 +84,7 @@ switch constName
         sConstell.argLat = 0;           % Argument of latitude [deg]
         sConstell.satNames = "Iridium"; % Name String
     case {"Galileo","galileo"}
-        % Satellite Constellation (Iridium)
+        % Satellite Constellation (Galileo)
         sConstell.satFun = @walkerDelta; % Galileo has a Walker Delta configuration
         sConstell.radius = 29599.8;      % Radius in [km]
         sConstell.inclin = 56;           % Inclination [deg]

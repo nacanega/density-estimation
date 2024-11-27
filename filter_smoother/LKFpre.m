@@ -81,6 +81,9 @@ for i = 2:N
     dx_pred = Phi*dx_est;
     P_pred = Phi*P_est*Phi' + Q;
 
+    % Ensure P_pred is symmetric
+    P_pred = (P_pred' + P_pred)/2;
+
     % Compute observation deviation
     if allfinite(z)
         b = z - H*X_pred;

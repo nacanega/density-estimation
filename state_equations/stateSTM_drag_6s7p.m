@@ -77,6 +77,6 @@ F = [dvdr,dvdv;...
      dadr,dadv];
 
 % State derivatives
-xyzPhidot(7:end) = reshape(F*Phi,size(xyzPhi(7:end)));
+xyzPhidot(7:end) = reshape(F*Phi,[],1);
 
 end

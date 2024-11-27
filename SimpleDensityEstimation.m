@@ -48,14 +48,21 @@ if runCalc
     defaultParams = [Cd A m];
 
     % For Satellite Constellation
-    satFun = @walkerStar; % Function to generate constellation
-    hSats = 781;          % Satellite Altitude [km]
-    nSats = 66;           % Number of Satellites % Saving everything ~40 GB
-    inclin = 86.4;        % Inclination of orbits [deg]
-    nPlanes = 6;          % Number of planes
-    phasing = 2;          % Phasing
-    argLat = 0;           % Argument of latitude [deg]
-    satNames = "Iridium"; % Name String
+    % satType = "Iridium";
+    % satFun = @walkerStar; % Function to generate constellation
+    % hSats = 781;          % Satellite Altitude [km]
+    % nSats = 66;           % Number of Satellites % Saving everything ~40 GB
+    % inclin = 86.4;        % Inclination of orbits [deg]
+    % nPlanes = 6;          % Number of planes
+    % phasing = 2;          % Phasing
+    % argLat = 0;           % Argument of latitude [deg]
+    % satNames = "Iridium"; % Name String
+
+    % Single Satellite
+    satType = "singleCircular";
+    nSats = 1;
+    satNames = "CircularTest";
+    satFun = @satellite;
 
     % For Integration
     t0 = 0;           % Initial Time [s]
@@ -107,17 +114,17 @@ if runCalc
 %% Generate Satellite Initial Orbits
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Generate Initial Satellite Constellation Parameters
-    constellation = initialConstell("test");
+    constellation = initialConstell(satType);
 
     % Set Constellation parameters
-    constellation.satFun = satFun;
-    constellation.radius = hSats + rE;
-    constellation.inclin = inclin;
-    constellation.nSats = nSats;
-    constellation.nPlanes = nPlanes;
-    constellation.phasing = phasing;
-    constellation.argLat = argLat;
-    constellation.satNames = satNames;
+    % constellation.satFun = satFun;
+    % constellation.radius = hSats + rE;
+    % constellation.inclin = inclin;
+    % constellation.nSats = nSats;
+    % constellation.nPlanes = nPlanes;
+    % constellation.phasing = phasing;
+    % constellation.argLat = argLat;
+    % constellation.satNames = satNames;
 
     % Generate Satellite Initial States
     [satScen,initElems,initStates,varParams] = ...

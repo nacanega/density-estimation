@@ -232,6 +232,7 @@ while  maxDiff > tol && iter < maxIter && numInc < maxInc
             rPhis = XpredsPhis(:,M+1:M+M*M);
 
             % Update to Incremental Phis
+            % TODO improve this with other methods, the inverse here is bad
             for i = 2:N
                 Phis(:,:,i) = reshape(rPhis(i,:),M,M)/reshape(rPhis(i-1,:),M,M);
             end

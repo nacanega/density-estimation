@@ -18,7 +18,7 @@ addpath("other_functions")
 %#ok<*UNRCH> % Flag to suppress unreachable code warning
 % Flags
 clearPath = false; % Whether or not to clear path after running
-geneFig = false;    % Whether or not to generate figures
+geneFig = true;    % Whether or not to generate figures
 saveFig = false;    % Whether or not to save figures
 saveRes = false;    % Whether or not to save results
 runCalc = true;    % Whether or not to run calculation
@@ -37,21 +37,28 @@ if runCalc
     rE = 6378.1363;    % Earth radius [km]
     wE = (2*pi)/86164.0905308; % Earth angular velocity (about z) [rad/s]
     rhoFun = @expDensity;      % Atmospheric Density function
+    J2 = 1.082626174e-3;       % J2 Shape Coefficient
     
     % Parameters for drag (all satellites the same)
     Cd = 2.17;                 % Nominal Drag coefficient
     A = 1e1*1e-6;                % Cross sectional area [km^2]
     m = 4;                     % Mass [kg]
     
-    % For Satellite Constellation
-    satFun = @walkerStar; % Function to generate constellation
-    hSats = 781;          % Satellite Altitude [km]
-    nSats = 66;           % Number of Satellites 
-    inclin = 86.4;        % Inclination of orbits [deg]
-    nPlanes = 6;          % Number of planes
-    phasing = 2;          % Phasing
-    argLat = 0;           % Argument of latitude [deg]
-    satNames = "Iridium"; % Name String
+    % % For Satellite Constellation
+    % satFun = @walkerStar; % Function to generate constellation
+    % hSats = 781;          % Satellite Altitude [km]
+    % nSats = 66;           % Number of Satellites 
+    % inclin = 86.4;        % Inclination of orbits [deg]
+    % nPlanes = 6;          % Number of planes
+    % phasing = 2;          % Phasing
+    % argLat = 0;           % Argument of latitude [deg]
+    % satNames = "Iridium"; % Name String
+
+    % Single Satellite
+    satType = "singleCircular";
+    nSats = 1;
+    satNames = "CircularTest";
+    satFun = @satellite;
     
     % For Integration
     t0 = 0;           % Initial Time [s]
@@ -59,8 +66,8 @@ if runCalc
     dt = 1;           % Time Step [s]
     
     % Set System Functions
-    XdotNL = @stateEQ_drag_6s7p;
-    XdotPhidot = @stateSTM_drag_6s7p;
+    XdotNL = @stateEQ_j2drag_6s8p;
+    XdotPhidot = @stateSTM_j2drag_6s8p;
     vsIntFun = @ode89;
     odeOpts = odeset("AbsTol",1e-9,"RelTol",1e-8);
     
@@ -101,17 +108,17 @@ if runCalc
 %% Generate Satellite Initial Orbits
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
     % Generate Initial Satellite Constellation Parameters
-    constellation = initialConstell("test");
+    constellation = initialConstell(satType);
 
     % Set Constellation parameters
-    constellation.satFun = satFun;
-    constellation.radius = hSats + rE;
-    constellation.inclin = inclin;
-    constellation.nSats = nSats;
-    constellation.nPlanes = nPlanes;
-    constellation.phasing = phasing;
-    constellation.argLat = argLat;
-    constellation.satNames = satNames;
+    % constellation.satFun = satFun;
+    % constellation.radius = hSats + rE;
+    % constellation.inclin = inclin;
+    % constellation.nSats = nSats;
+    % constellation.nPlanes = nPlanes;
+    % constellation.phasing = phasing;
+    % constellation.argLat = argLat;
+    % constellation.satNames = satNames;
 
     % Generate Satellite Initial States
     [satScen,initElems,initStates] = initialOrbits(constellation);
@@ -131,6 +138,7 @@ if runCalc
     params.Cd = Cd;
     params.A = A;
     params.m = m;
+    params.J2 = J2;
 
     % Preallocate Nonlinear Trajectories
     Xnl = zeros(Nstep,nStates,nSats);

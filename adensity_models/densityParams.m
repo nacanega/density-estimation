@@ -1,8 +1,8 @@
-function modPs = densityParams(r,varargin)
+function modPs = densityParams(h,varargin)
 %expDensity Implements the basic exponential atmospheric model from Vallado
 % which incorporates several bands
 %   INPUTS:
-%         r - [m,1] radius [km]
+%         h - [m,1] altitude [km]
 %  varargin - placeholder to allow for interchangeability with more complex
 %             atmospheric density models
 %   OUTPUT:
@@ -17,8 +17,6 @@ function modPs = densityParams(r,varargin)
 %   In Fundamentals of Astrodynamics and Applications 
 %   (5th ed., pp. 568–578). Microcosm Press.
 
-rE = 6378.1363; % [km]
-
 % Parameters for each band
 bands = [0 25 30:10:150 180 200:50:450 500:100:1000 Inf];
 h0s = bands(1:end-1);
@@ -32,7 +30,7 @@ Hs = [7.249  6.349  6.682  7.554  8.382  7.714  6.549   5.799  5.382 ...
      53.628 53.298 58.515 60.828 63.822 71.835 88.667 124.64 181.05 268.00];
 
 % Determine which band to use
-band = discretize(r-rE,bands);
+band = discretize(h,bands);
 
 % Lookup values for that band
 rho0 = rho0s(band); % Nominal density

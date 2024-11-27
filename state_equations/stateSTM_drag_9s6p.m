@@ -40,9 +40,9 @@ vR = sqrt(vRs.'*vRs);
 vRhat = vRs./vR;
 
 % Density parameters
-rho0 = xyzPhi(1); 
-h0 = xyzPhi(2);
-H = xyzPhi(3);
+rho0 = xyzPhi(7); 
+h0 = xyzPhi(8);
+H = xyzPhi(9);
 
 % Density
 h = r-rE;
@@ -54,7 +54,7 @@ xyzPhidot(1:3) = vs;
 xyzPhidot(4:6) = -(muE/r^3)*rs - (0.5*rho*Cd*A/m)*vR*vRs;
 %xyzPhidot(7:9) = zeros(3,1);
 
-Phi = reshape(xyzPhi(10:end),[9 9]);
+Phi = reshape(xyzPhi(10:end),9,9);
 Z = zeros(3);
 I = eye(3);
 
@@ -84,6 +84,6 @@ F = [dvdr, dvdv,    Z; ...
         Z,    Z,    Z];
 
 % State derivatives
-xyzPhidot(10:end) = reshape(F*Phi,size(xyzPhi(10:end)));
+xyzPhidot(10:end) = reshape(F*Phi,[],1);
 
 end
