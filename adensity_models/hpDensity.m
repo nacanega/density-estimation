@@ -56,12 +56,14 @@ UbFun = params.UbFun; % Input: (t,[rs;vs],params); Output: [Ubx;Uby;Ubz]
 
 % Position
 rs = z(1:3);
+x = rs(1); y = rs(2); z = rs(3);
 r = sqrt(rs.'*rs);
 rhat = rs./r;
 
 % Velocity
 vs = z(4:6);
-r = sqrt(vs.'*vs);
+v = sqrt(vs.'*vs);
+vx = vs(1); vy = vs(2); vz = vs(3);
 vhat = vs./v;
 
 % Density Parameters
@@ -91,10 +93,17 @@ rho = [];
 
 % Compute Ub
 Ub = UbFun(t,z,params);
-
+Ubx = Ub(1);
+Uby = Ub(2); 
+Ubz = Ub(3);
 % Compute partial derivatives of drag acceleration
-dadr = [];
-dadv = [];
+drconst = (A*Cd*v)/(2*m); Ubconst = (Ubx*x + Uby*y + Ubz*z); 
+dadr = drconst*[(vx*((rho_m_low*x*exp(((h_low + rE - r)/H_m)))/(H_m*r) - ((1/2^(n/2 + 1))*n*(rho_M_low*exp(((h_low + rE - r)/H_M)) - rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2 - 1)*(Ubx*y^2 - Uby*x*y + Ubx*z^2 - Ubz*x*z))/r^3 + (x*(H_m*rho_M_low*exp(((h_low + rE - r)/H_M)) - H_M*rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r))),vx*((rho_m_low*y*exp(((h_low + rE - r)/H_m)))/(H_m*r) - ((1/2^(n/2 + 1))*n*(rho_M_low*exp(((h_low + rE - r)/H_M)) - rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2 - 1)*(Uby*x^2 - Ubx*y*x + Uby*z^2 - Ubz*y*z))/r^3 + (y*(H_m*rho_M_low*exp(((h_low + rE - r)/H_M)) - H_M*rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vx*((rho_m_low*z*exp(((h_low + rE - r)/H_m)))/(H_m*r) - ((1/2^(n/2 + 1))*n*(rho_M_low*exp(((h_low + rE - r)/H_M)) - rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2 - 1)*(Ubz*x^2 - Ubx*z*x + Ubz*y^2 - Uby*z*y))/r^3 + (z*(H_m*rho_M_low*exp(((h_low + rE - r)/H_M)) - H_M*rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r));
+                 vy*((rho_m_low*x*exp(((h_low + rE - r)/H_m)))/(H_m*r) - ((1/2^(n/2 + 1))*n*(rho_M_low*exp(((h_low + rE - r)/H_M)) - rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2 - 1)*(Ubx*y^2 - Uby*x*y + Ubx*z^2 - Ubz*x*z))/r^3 + (x*(H_m*rho_M_low*exp(((h_low + rE - r)/H_M)) - H_M*rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vy*((rho_m_low*y*exp(((h_low + rE - r)/H_m)))/(H_m*r) - ((1/2^(n/2 + 1))*n*(rho_M_low*exp(((h_low + rE - r)/H_M)) - rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2 - 1)*(Uby*x^2 - Ubx*y*x + Uby*z^2 - Ubz*y*z))/r^3 + (y*(H_m*rho_M_low*exp(((h_low + rE - r)/H_M)) - H_M*rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vy*((rho_m_low*z*exp(((h_low + rE - r)/H_m)))/(H_m*r) - ((1/2^(n/2 + 1))*n*(rho_M_low*exp(((h_low + rE - r)/H_M)) - rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2 - 1)*(Ubz*x^2 - Ubx*z*x + Ubz*y^2 - Uby*z*y))/r^3 + (z*(H_m*rho_M_low*exp(((h_low + rE - r)/H_M)) - H_M*rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r));
+                 vz*((rho_m_low*x*exp(((h_low + rE - r)/H_m)))/(H_m*r) - ((1/2^(n/2 + 1))*n*(rho_M_low*exp(((h_low + rE - r)/H_M)) - rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2 - 1)*(Ubx*y^2 - Uby*x*y + Ubx*z^2 - Ubz*x*z))/r^3 + (x*(H_m*rho_M_low*exp(((h_low + rE - r)/H_M)) - H_M*rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vz*((rho_m_low*y*exp(((h_low + rE - r)/H_m)))/(H_m*r) - ((1/2^(n/2 + 1))*n*(rho_M_low*exp(((h_low + rE - r)/H_M)) - rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2 - 1)*(Uby*x^2 - Ubx*y*x + Uby*z^2 - Ubz*y*z))/r^3 + (y*(H_m*rho_M_low*exp(((h_low + rE - r)/H_M)) - H_M*rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vz*((rho_m_low*z*exp(((h_low + rE - r)/H_m)))/(H_m*r) - ((1/2^(n/2 + 1))*n*(rho_M_low*exp(((h_low + rE - r)/H_M)) - rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2 - 1)*(Ubz*x^2 - Ubx*z*x + Ubz*y^2 - Uby*z*y))/r^3 + (z*(H_m*rho_M_low*exp(((h_low + rE - r)/H_M)) - H_M*rho_m_low*exp(((h_low + rE - r)/H_m)))*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r))];
+dadv = (drconst/v)*[- (((rho_M_low*exp(((h_low + rE - r)/H_M)) - rho_m_low*exp(((h_low+ rE - r)/H_m)))*((Ubconst)/(2*r) + sym(1/2))^(n/2) + rho_m_low*exp(((h_low+ rE - r)/H_m)))*v) - (vx^2*((rho_M_low*exp(((h_low+ rE - r)/H_M)) - rho_m_low*exp(((h_low+ rE - r)/H_m)))*((Ubconst)/(2*r) + sym(1/2))^(n/2) + rho_m_low*exp(((h_low+ rE - r)/H_m))))/(v), -(vx*vy*((rho_M_low*exp(((h_low+ rE - r)/H_M)) - rho_m_low*exp(((h_low+ rE - r)/H_m)))*((Ubconst)/(2*r) + sym(1/2))^(n/2) + rho_m_low*exp(((h_low+ rE - r)/H_m))))/(v), -(vx*vz*((rho_M_low*exp(((h_low+ rE - r)/H_M)) - rho_m_low*exp(((h_low+ rE - r)/H_m)))*((Ubconst)/(2*r) + sym(1/2))^(n/2) + rho_m_low*exp(((h_low+ rE - r)/H_m))))/(v);
+                    -(vx*vy*((rho_M_low*exp(((h_low+ rE - r)/H_M)) - rho_m_low*exp(((h_low+ rE - r)/H_m)))*((Ubconst)/(2*r) + sym(1/2))^(n/2) + rho_m_low*exp(((h_low+ rE - r)/H_m))))/(v), - (((rho_M_low*exp(((h_low+ rE - r)/H_M)) - rho_m_low*exp(((h_low+ rE - r)/H_m)))*((Ubconst)/(2*r) + sym(1/2))^(n/2) + rho_m_low*exp(((h_low+ rE - r)/H_m)))*v) - (vy^2*((rho_M_low*exp(((h_low+ rE - r)/H_M)) - rho_m_low*exp(((h_low+ rE - r)/H_m)))*((Ubconst)/(2*r) + sym(1/2))^(n/2) + rho_m_low*exp(((h_low+ rE - r)/H_m))))/(v), -(vy*vz*((rho_M_low*exp(((h_low+ rE - r)/H_M)) - rho_m_low*exp(((h_low+ rE - r)/H_m)))*((Ubconst)/(2*r) + sym(1/2))^(n/2) + rho_m_low*exp(((h_low+ rE - r)/H_m))))/(v);
+                    -(vx*vz*((rho_M_low*exp(((h_low+ rE - r)/H_M)) - rho_m_low*exp(((h_low+ rE - r)/H_m)))*((Ubconst)/(2*r) + sym(1/2))^(n/2) + rho_m_low*exp(((h_low+ rE - r)/H_m))))/(v), -(vy*vz*((rho_M_low*exp(((h_low+ rE - r)/H_M)) - rho_m_low*exp(((h_low+ rE - r)/H_m)))*((Ubconst)/(2*r) + sym(1/2))^(n/2) + rho_m_low*exp(((h_low+ rE - r)/H_m))))/(v), - (((rho_M_low*exp(((h_low+ rE - r)/H_M)) - rho_m_low*exp(((h_low+ rE - r)/H_m)))*((Ubconst)/(2*r) + sym(1/2))^(n/2) + rho_m_low*exp(((h_low+ rE - r)/H_m)))*v) - (vz^2*((rho_M_low*exp(((h_low+ rE - r)/H_M)) - rho_m_low*exp(((h_low+ rE - r)/H_m)))*((Ubconst)/(2*r) + sym(1/2))^(n/2) + rho_m_low*exp(((h_low+ rE - r)/H_m))))/(v)];
 dadM = [];
 
 end
