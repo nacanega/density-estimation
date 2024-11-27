@@ -58,13 +58,13 @@ UbFun = params.UbFun; % Input: (t,[rs;vs],params); Output: [Ubx;Uby;Ubz]
 rs = z(1:3);
 x = rs(1); y = rs(2); z = rs(3);
 r = sqrt(rs.'*rs);
-rhat = rs./r;
+% rhat = rs./r;
 
 % Velocity
 vs = z(4:6);
 v = sqrt(vs.'*vs);
 vx = vs(1); vy = vs(2); vz = vs(3);
-vhat = vs./v;
+% vhat = vs./v;
 
 % Density Parameters
 rho_min = z(7);
@@ -88,13 +88,14 @@ rho_M_high = max_density(band+1);    % Max density at h_{i+1}
 H_m = (h_low - h_high) ./ log(rho_m_high ./ rho_m_low);
 H_M = (h_low - h_high) ./ log(rho_M_high ./ rho_M_low);
 
-% Compute density
-rho = [];
-
 % Compute Ub
 Ub = UbFun(t,z,params);
 Ubx = Ub(1); Uby = Ub(2); Ubz = Ub(3);
-% Compute partial derivatives of drag acceleration
+
+% Compute density
+rho = rho_min + (rho_max-rho_min)*(1/2 + (rs.'*Ub)/(2*r))^(n/2);
+
+% Computing Partials
 drconst = (A*Cd*v)/(2*m); Ubconst = (Ubx*x + Uby*y + Ubz*z); 
 dadr = drconst*[vx*((rho_min*x)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubx*y^2 - Uby*x*y + Ubx*z^2 - Ubz*x*z))/r^3 - (x*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vx*((rho_min*y)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Uby*x^2 - Ubx*y*x + Uby*z^2 - Ubz*y*z))/r^3 - (y*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vx*((rho_min*z)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubz*x^2 - Ubx*z*x + Ubz*y^2 - Uby*z*y))/r^3 - (z*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r));
                 vy*((rho_min*x)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubx*y^2 - Uby*x*y + Ubx*z^2 - Ubz*x*z))/r^3 - (x*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vy*((rho_min*y)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Uby*x^2 - Ubx*y*x + Uby*z^2 - Ubz*y*z))/r^3 - (y*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vy*((rho_min*z)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubz*x^2 - Ubx*z*x + Ubz*y^2 - Uby*z*y))/r^3 - (z*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r));
