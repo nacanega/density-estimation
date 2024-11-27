@@ -56,7 +56,7 @@ UbFun = params.UbFun; % Input: (t,[rs;vs],params); Output: [Ubx;Uby;Ubz]
 
 % Position
 rs = z(1:3);
-x = rs(1); y = rs(2); z = rs(3);
+rx = rs(1); ry = rs(2); rz = rs(3);
 r = sqrt(rs.'*rs);
 % rhat = rs./r;
 
@@ -96,10 +96,10 @@ Ubx = Ub(1); Uby = Ub(2); Ubz = Ub(3);
 rho = rho_min + (rho_max-rho_min)*(1/2 + (rs.'*Ub)/(2*r))^(n/2);
 
 % Computing Partials
-drconst = (A*Cd*v)/(2*m); Ubconst = (Ubx*x + Uby*y + Ubz*z); 
-dadr = drconst*[vx*((rho_min*x)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubx*y^2 - Uby*x*y + Ubx*z^2 - Ubz*x*z))/r^3 - (x*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vx*((rho_min*y)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Uby*x^2 - Ubx*y*x + Uby*z^2 - Ubz*y*z))/r^3 - (y*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vx*((rho_min*z)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubz*x^2 - Ubx*z*x + Ubz*y^2 - Uby*z*y))/r^3 - (z*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r));
-                vy*((rho_min*x)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubx*y^2 - Uby*x*y + Ubx*z^2 - Ubz*x*z))/r^3 - (x*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vy*((rho_min*y)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Uby*x^2 - Ubx*y*x + Uby*z^2 - Ubz*y*z))/r^3 - (y*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vy*((rho_min*z)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubz*x^2 - Ubx*z*x + Ubz*y^2 - Uby*z*y))/r^3 - (z*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r));
-                vz*((rho_min*x)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubx*y^2 - Uby*x*y + Ubx*z^2 - Ubz*x*z))/r^3 - (x*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vz*((rho_min*y)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Uby*x^2 - Ubx*y*x + Uby*z^2 - Ubz*y*z))/r^3 - (y*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vz*((rho_min*z)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubz*x^2 - Ubx*z*x + Ubz*y^2 - Uby*z*y))/r^3 - (z*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r))];
+drconst = (A*Cd*v)/(2*m); Ubconst = (Ubx*rx + Uby*ry + Ubz*rz); 
+dadr = drconst*[vx*((rho_min*rx)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubx*ry^2 - Uby*rx*ry + Ubx*rz^2 - Ubz*rx*rz))/r^3 - (x*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vx*((rho_min*ry)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Uby*rx^2 - Ubx*ry*rx + Uby*rz^2 - Ubz*ry*rz))/r^3 - (y*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vx*((rho_min*rz)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubz*rx^2 - Ubx*rz*rx + Ubz*ry^2 - Uby*rz*ry))/r^3 - (z*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r));
+                vy*((rho_min*rx)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubx*ry^2 - Uby*rx*ry + Ubx*rz^2 - Ubz*rx*rz))/r^3 - (x*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vy*((rho_min*ry)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Uby*rx^2 - Ubx*ry*rx + Uby*rz^2 - Ubz*ry*rz))/r^3 - (y*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vy*((rho_min*rz)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubz*rx^2 - Ubx*rz*rx + Ubz*ry^2 - Uby*rz*ry))/r^3 - (z*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r));
+                vz*((rho_min*rx)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubx*ry^2 - Uby*rx*ry + Ubx*rz^2 - Ubz*rx*rz))/r^3 - (x*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vz*((rho_min*ry)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Uby*rx^2 - Ubx*ry*rx + Uby*rz^2 - Ubz*ry*rz))/r^3 - (y*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r)), vz*((rho_min*rz)/(H_m*r) + ((1/2^(n/2 + 1))*n*(rho_min - rho_max)*(Ubconst/r + 1)^(n/2 - 1)*(Ubz*rx^2 - Ubx*rz*rx + Ubz*ry^2 - Uby*rz*ry))/r^3 - (z*(H_M*rho_min - H_m*rho_max)*(Ubconst/r + 1)^(n/2))/(2^(n/2)*H_M*H_m*r))];
 dadv = ((drconst*rho)/(v))*[- v - vx^2/v, -(vx*vy)/v, -(vx*vz)/v;
                           -(vx*vy)/v, - v - vy^2/v, -(vy*vz)/v;
                           -(vx*vz)/v, -(vy*vz)/v, - v - vz^2/v];
