@@ -37,8 +37,11 @@ TODO Finish basic LKF_RTSpre
 - [ ] SNC
 - [ ] DMC
 - [ ] De-Orbit Check
+- [ ] Warning Counter/Suppression - Check for singular
 - [ ] Alternate version with taylor series
 - [ ] Alternate version with looped interval integration
+- [ ] Potentially implement EKF
+- [ ] Potentially implement IEKF
 
 TODO Make a call script
 - [x] Evaluate Each satellite individually
@@ -68,3 +71,11 @@ TODO Implement Density
 TODO Implement Complex Reference Trajectory
 - [ ] Simple Nonlinear Model (Drag Only) 
 - [ ] Simple Nonlinear Model (Drag + J2-J6)
+
+FIXME Density Estimation
+- [ ] Exponential Atmosphere (1 sat)
+- [ ] Exponential Atmosphere (2+ sat)
+- [ ] Exponential Atmosphere (2+ sat, Cd in state)
+- [ ] HP Atmosphere (1 sat)
+- [ ] HP Atmosphere (2+ sat)
+- [ ] HP Atmosphere (2+ sat, Cd in state)
