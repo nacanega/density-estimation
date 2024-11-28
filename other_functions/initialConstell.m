@@ -64,7 +64,7 @@ switch constName
         sConstell.satNames = "Elliptical"; % Satellite name
     case {"doubleCircular","DoubleCircular"}
         % Double Satellite Circular
-        sConstell.satFun = @doubleSat;   % Single satellite orbit
+        sConstell.satFun = @nSat;        % N satellite orbit
         sConstell.semimajor = 7159.1363; % Radius in [km]
         sConstell.eccent = 0;            % Eccentricity
         sConstell.inclin = 28.5;         % Inclination [deg]
@@ -72,6 +72,17 @@ switch constName
         sConstell.argPeri = 0;           % Argument of periapsis [deg]
         sConstell.trueAnom = 0;          % True anomaly [deg]
         sConstell.nSats = 2;             % Number of satellites
+        sConstell.satNames = "Circular"; % Satellite name
+    case {"nCircular","NCircular"}
+        % N Satellite Circular
+        sConstell.satFun = @nSat;        % N satellite orbit
+        sConstell.semimajor = 7159.1363; % Radius in [km]
+        sConstell.eccent = 0;            % Eccentricity
+        sConstell.inclin = 28.5;         % Inclination [deg]
+        sConstell.RAAN = 0;              % Right ascension of ascending node [deg]
+        sConstell.argPeri = 0;           % Argument of periapsis [deg]
+        sConstell.trueAnom = 0;          % True anomaly [deg]
+        sConstell.nSats = 0;             % Number of satellites
         sConstell.satNames = "Circular"; % Satellite name
     case {"Iridium","iridium"}
         % Satellite Constellation (Iridium)
