@@ -68,7 +68,7 @@ switch constName
         sConstell.semimajor = 7159.1363; % Radius in [km]
         sConstell.eccent = 0;            % Eccentricity
         sConstell.inclin = 28.5;         % Inclination [deg]
-        sConstell.RAAN = [0 180];        % Right ascension of ascending node [deg]
+        sConstell.RAAN = [0;180];        % Right ascension of ascending node [deg]
         sConstell.argPeri = 0;           % Argument of periapsis [deg]
         sConstell.trueAnom = 0;          % True anomaly [deg]
         sConstell.nSats = 2;             % Number of satellites

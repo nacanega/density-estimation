@@ -1,4 +1,4 @@
-function [satScen,initElems,initStates,varargout] = initialOrbits(S,varargin)
+function [satScen,initElems,initStates,varargout] = initialOrbits(S,satStates,modStates,satParams,defParams)
 %initialOrbits takes in an initial orbit generation structure consisting of
 % the function name, the required arguments, and names for the satellites and
 % outputs a handle to the satellite scenario, initial orbital elements, the
@@ -23,9 +23,10 @@ function [satScen,initElems,initStates,varargout] = initialOrbits(S,varargin)
 %     . trueAnom - True Anomaly [deg]
 %     .    nSats - Total number of satellites
 %     . satNames - String describing name of satellite constellation
-% varargin - {1} [1,m] String vector of state variable names
-%          - {2} [1,p] String vector of system parameters
-%          - {3} [1,p] Vector of default values for system parameters
+% satStates - (1,m) String vector of state variable names
+% modStates - (1,k) String vector of model state variable names
+% satParams - (1,p) String vector of system parameters
+% defParams - (1,p) Vector of default values for system parameters
 % OUTPUT:
 %    satScen - Satellite scenario object
 %  initElems - [n,7] Matrix of initial orbital elements with the columns:
@@ -48,8 +49,15 @@ function [satScen,initElems,initStates,varargout] = initialOrbits(S,varargin)
 % initStates - [n,m] Matrix of initial states for each satellite
 %  varargout - {1} [n,p] Matrix of parameters for each satellite
 % TODO add validation
-narginchk(1,4)
-nargoutchk(3,4)
+arguments (Input)
+    S struct
+    satStates string {mustBeVector} = ["r_x","r_y","r_z","v_x","v_y","v_z"];
+    modStates string {mustBeVector} = "";
+    satParams string {mustBeVector} = "";
+    defParams double = [];
+end
+narginchk(1,5)
+nargoutchk(3,5)
 
 satScen = satelliteScenario;
 satFun = S.satFun;
@@ -64,20 +72,34 @@ switch satFunName
         % singleSat
         sats = satFun(satScen, 1e3*S.semimajor, S.eccent, S.inclin,...
             S.RAAN, S.argPeri, S.trueAnom, Name=S.satNames);
-    case "doubleSat"
-        % doubleSat
-        sats = satFun(satScen, 1e3*S.semimajor, S.eccent, S.inclin,...
-            S.RAAN, S.argPeri, S.trueAnom, Name=S.satNames);
     otherwise
         % Custom satFun
         sats = satFun(satScen,S);
 end
 
 % Iterate over each satellite and obtain elements
-nSats = length(sats);
+nSats = S.nSats;
 
-% Set orbital elements
+if ~(satParams == "")
+    nParams = length(satParams);
+    initParams = ones(nSats,nParams);
+    if ~isempty(defParams)
+        [nSatChk,~] = size(defParams);
+        if nSatChk == 1
+            defParams = defParams.*ones(nSats,nParams);
+        elseif nSatChk ~= nSats
+            eid = "Size:specifiedParametersMustBeVectorOrMatchSatelliteNumber";
+            msg = "Defined parameters must either be a single vector or " + ...
+                "a matrix where the number of rows matches the satellite number.";
+            error(eid,msg);
+        end
+    end
+else
+    nParams = 0;
+end
+
 for i = nSats:-1:1
+    % Set orbital elements
     OEs = orbitalElements(sats(i));
 
     % Common Elements
@@ -95,111 +117,103 @@ for i = nSats:-1:1
         initElems(i,1) = OEs.MeanMotion;
         initElems(i,6) = OEs.MeanAnomaly;
     end
-    
-end
 
-% Different states depending on how many states we have
-if nargin > 1
-    % We have a different number of states defined in varagin{1}
-    switch varargin{1}
+    % Set states
+    switch satStates
         case ["r_x","r_y","r_z","v_x","v_y","v_z"]
-            % We can use the standard states
-            for i = nSats:-1:1
-                [pos, vel] = states(sats(i));
-                pos = pos*1e-3; vel = vel*1e-3;
-                initStates(i,:) = [pos(:,1).' vel(:,1).'];
-            end
-       case ["r_x","r_y","r_z","v_x","v_y","v_z","rho_0","h_0","H"]
-            for i = nSats:-1:1
-                [pos, vel] = states(sats(i));
-                pos = pos*1e-3; vel = vel*1e-3;
-                r = norm(pos(:,1));
-                modPs = densityParams(r-6378.1363);
-                initStates(i,:) = [pos(:,1).' vel(:,1).' modPs];
-            end
-       case ["r_x","r_y","r_z","v_x","v_y","v_z","rho_0","H"]
-            for i = nSats:-1:1
-                [pos, vel] = states(sats(i));
-                pos = pos*1e-3; vel = vel*1e-3;
-                r = norm(pos(:,1));
-                modPs = densityParams(r-6378.1363);
-                initStates(i,:) = [pos(:,1).' vel(:,1).' modPs(1) modPs(3)];
-            end
-       case ["r_x","r_y","r_z","v_x","v_y","v_z","rho_0","Hi"]
-            for i = nSats:-1:1
-                [pos, vel] = states(sats(i));
-                pos = pos*1e-3; vel = vel*1e-3;
-                r = norm(pos(:,1));
-                modPs = densityParams(r-6378.1363);
-                initStates(i,:) = [pos(:,1).' vel(:,1).' modPs(1) 1./modPs(3)];
-            end
+            [pos, vel] = states(sats(i));
+            pos = pos*1e-3; vel = vel*1e-3;
+            initStates(i,:) = [pos(:,1).' vel(:,1).'];
+        case ["r_x","r_y","r_z","v_x","v_y","v_z","C_D"]
+            [pos, vel] = states(sats(i));
+            pos = pos*1e-3; vel = vel*1e-3;
+            initStates(i,:) = [pos(:,1).' vel(:,1).' ...
+                sats(i).PhysicalProperties.DragCoefficient];
         otherwise
             eid = "States:undefinedStateSequence";
             msg = "State vector not recognized, please check for typos, " + ...
                 "edit this file to include the case. Alternatively, " + ...
                 "construct your initial states manually by calling " + ...
-                "without the state and parameter vectors.";
+                "without the state, model, and parameter vectors.";
             error(eid,msg)
     end
-else
-    % We can use the standard states
-    for i = nSats:-1:1
-        [pos, vel] = states(sats(i));
-        initStates(i,:) = [pos(:,1).' vel(:,1).']./1e3;
-    end
-end
 
-% Different parameter outputs depending on which are specified
-if nargout == 4
-    % We are outputting parameters
-    if nargin == 1 || nargin == 2
-        % Parameters are not specified, output default
-        % Cd A m 
-        for i = nSats:-1:1
-            initParams(i,5) = sats(i).PhysicalProperties.Mass;
-            initParams(i,4) = sats(i).PhysicalProperties.SRPArea;
-            initParams(i,3) = sats(i).PhysicalProperties.ReflectivityCoefficient;
-            initParams(i,2) = sats(i).PhysicalProperties.DragArea;
-            initParams(i,1) = sats(i).PhysicalProperties.DragCoefficient;
+    if nargout >= 4
+        % Set model states
+        % TODO Nonspherical Earth
+        % TODO Circular and elliptical orbit state native
+        h = norm(pos) - 6378.1363;
+        switch modStates
+            case ""
+                varargout{1} = [];
+            case "rho_0" % Exponential model single parameter estimation
+                [rho_0,h_0,H] = expParams(h);
+                varargout{1}(i) = rho_0;
+            case ["rho_0","H"] % Requires satellites at different altitudes
+                [rho_0,h_0,H] = expParams(h);
+                varargout{1}(i,2) = H;
+                varargout{1}(i,1) = rho_0;
+            case ["rho_0","h_0","H"] % Requires satellites at different altitudes
+                [rho_0,h_0,H] = expParams(h);
+                varargout{1}(i,3) = H;
+                varargout{1}(i,2) = h_0;
+                varargout{1}(i,1) = rho_0;
+            otherwise
+                eid = "Model:undefinedStateSequence";
+                msg = "Model vector not recognized, please check for typos, " + ...
+                    "edit this file to include the case. Alternatively, " + ...
+                    "construct your initial states manually by calling " + ...
+                    "without the state, model, and parameter vectors.";
+                error(eid,msg)
         end
-    else
-        % Parameters are specified
-        nParams = length(varargin{2});
-        if nargin == 4
-            % Use specified parameters
-            initParams = ones(nSats,nParams);
-            initParams = initParams.*varargin{3};
-        else
-            % Use default paramters
-            for i = nSats:-1:1
-                for j = nParams:-1:1
-                    switch varargin{2}(j)
-                        case {"C_D","CD","DragCoefficient"}
-                            pName = "DragCoefficient";
-                        case {"A","A_D","AD","Area","area","DragArea"}
-                            pName = "DragArea";
-                        case {"C_R","CR","ReflectivityCoefficient"}
-                            pName = "ReflectivityCoefficient";
-                        case {"A_R","AR","SRPArea"}
-                            pName = "SRPArea";
-                        case {"m","m_s","m_S","M","M_s","M_S","mass","Mass"}
-                            pName = "Mass";
-                        case {"h0","H0","h_0","H_0"}
-                            calcP = true;
+        if nargout == 5
+            % Parameter output
+            if nParams > 0 && isempty(defParams)
+                % Parameters are specified, but not defined
+                for j = length(satParams):-1:1
+                    pName = satParams(j);
+                    switch pName
+                        case {"A","A_drag","A_DRAG"}
+                            initParams(i,j) = ... 
+                                sats(i).PhysicalProperties.DragArea;
+                        case {"C_D","C_d"}
+                            initParams(i,j) = ...
+                                sats(i).PhysicalProperties.DragCoefficient;
+                        case {"A_SRP","A_srp"}
+                            initParams(i,j) = ...
+                                sats(i).PhysicalProperties.SRPArea;
+                        case {"C_R","C_r"}
+                            initParams(i,j) = ...
+                                sats(i).PhysicalProperties.ReflectivityCoefficient;
+                        case {"m","m_s","mass","Mass","MASS"}
+                            initParams(i,j) = ...
+                                sats(i).PhysicalProperties.Mass;
+                        case "h_0"
+                            initParams(i,j) = h_0;
+                        case "H"
+                            initParams(i,j) = H;
                         otherwise
                             eid = "Parameter:undefinedSatelliteParameter";
                             error(eid, ...
-                                "'%s' is an undefined satellite parameter", ...
-                                varargin{2}(j))
-                    end
-                    if calcP
-                        initParams(i,j) = norm(pos) - mod(pos,100); % h_0
-                    else
-                        initParams(i,j) = sats(i).PhysicalProperties.(pName);
+                                "'%s' is an undefined satellite parameter.",pName)
                     end
                 end
+            elseif nParams > 0 && ~isempty(defParams)
+                % Use specified parameters
+                initParams(i,:) = defParams(i,:);
+            else % No parameters are specified or defined, use matlab defaults
+                initParams(i,5) = sats(i).PhysicalProperties.Mass;
+                initParams(i,4) = sats(i).PhysicalProperties.SRPArea;
+                initParams(i,3) = sats(i).PhysicalProperties.ReflectivityCoefficient;
+                initParams(i,2) = sats(i).PhysicalProperties.DragArea;
+                initParams(i,1) = sats(i).PhysicalProperties.DragCoefficient;
             end
         end
     end
-    varargout{1} = initParams;
+end % for
+
+if nargout == 5
+    varargout{2} = initParams;
 end
+
+end % function
