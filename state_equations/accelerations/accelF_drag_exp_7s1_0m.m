@@ -12,7 +12,7 @@ rE = params.rE;
 wA = [0;0;wE];
 
 % Extract state
-rs = state(1:3)'; r = sqrt(rs.'*rs);
+rs = state(1:3); r = sqrt(rs.'*rs);
 vs = state(4:6)';
 CD = state(7);
 

@@ -59,7 +59,10 @@ end
 narginchk(1,5)
 nargoutchk(3,5)
 
-satScen = satelliteScenario;
+% startDate = datetime(2000,1,1,12,0,0);
+% stopDate = startDate + hours(1.5);
+% sampleTime = 60;
+satScen = satelliteScenario("AutoSimulate",false);
 satFun = S.satFun;
 satFunName = func2str(satFun);
 
@@ -79,6 +82,7 @@ end
 
 % Iterate over each satellite and obtain elements
 nSats = S.nSats;
+advance(satScen);
 
 if ~(satParams == "")
     nParams = length(satParams);
@@ -110,7 +114,7 @@ for i = nSats:-1:1
     initElems(i,5) = OEs.ArgumentOfPeriapsis;
     
     % Different based on number of satellites...
-    if nSats > 1
+    if isfield(OEs,"TrueAnomaly")
         initElems(i,1) = OEs.SemiMajorAxis;
         initElems(i,6) = OEs.TrueAnomaly;
     else
@@ -145,19 +149,19 @@ for i = nSats:-1:1
         h = norm(pos) - 6378.1363;
         switch modStates
             case ""
-                varargout{1} = [];
+                modVals = [];
             case "rho_0" % Exponential model single parameter estimation
                 [rho_0,h_0,H] = expParams(h);
-                varargout{1}(i) = rho_0;
+                modVals(i) = rho_0;
             case ["rho_0","H"] % Requires satellites at different altitudes
                 [rho_0,h_0,H] = expParams(h);
-                varargout{1}(i,2) = H;
-                varargout{1}(i,1) = rho_0;
+                modVals(i,2) = H;
+                modVals(i,1) = rho_0;
             case ["rho_0","h_0","H"] % Requires satellites at different altitudes
                 [rho_0,h_0,H] = expParams(h);
-                varargout{1}(i,3) = H;
-                varargout{1}(i,2) = h_0;
-                varargout{1}(i,1) = rho_0;
+                modVals(i,3) = H;
+                modVals(i,2) = h_0;
+                modVals(i,1) = rho_0;
             otherwise
                 eid = "Model:undefinedStateSequence";
                 msg = "Model vector not recognized, please check for typos, " + ...
@@ -214,6 +218,9 @@ end % for
 
 if nargout == 5
     varargout{2} = initParams;
+    varargout{1} = modVals;
+elseif nargout == 4
+    varargout{1} = modVals;
 end
 
 end % function

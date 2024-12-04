@@ -7,6 +7,10 @@ function sats = nSat(satScen,constData)
 
 nSats = constData.nSats;
 satNames = constData.satNames;
+names = strings(nSats,1);
+for i = 1:nSats
+    names(i) = satNames + sprintf("_%d",i);
+end
 
 oneVec = ones(nSats,1);
 
@@ -69,7 +73,7 @@ elseif length(nu) ~= nSats
     error(eid,msg);
 end
 
-sats = satellite(satScen,a,e,i,RAAN,ap,nu,Name=satNames);
+sats = satellite(satScen,a,e,i,RAAN,ap,nu,Name=names);
 
 end
 

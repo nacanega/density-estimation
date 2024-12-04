@@ -213,7 +213,7 @@ numInc = 0;
 while  maxDiff > tol && iter < maxIter && numInc < maxInc
 
     % Set initial conditions for combined Phi and X_pred integration
-    XpredPhi0 = [X_pred0;reshape(Phis(:,:,1),[],1)]
+    XpredPhi0 = [X_pred0;reshape(Phis(:,:,1),[],1)];
 
     % Update reference trajectory and STM
     % TODO Smart Block integration

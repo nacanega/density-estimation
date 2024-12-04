@@ -1,6 +1,6 @@
 function [a_drag,varargout] = accelF_drag_exp_6s1_0m(state,params)
 % [r_x r_y r_z v_x v_y v_z rho_0]
-CD = params.CD;
+CD = params.C_D;
 A = params.A;
 m = params.m;
 rho_0 = params.rho_0;
@@ -13,7 +13,7 @@ rE = params.rE;
 wA = [0;0;wE];
 
 % Extract state
-rs = state(1:3)'; r = sqrt(rs.'*rs); 
+rs = state(1:3); r = sqrt(rs.'*rs); 
 vs = state(4:6)';
 
 % Relative velocity

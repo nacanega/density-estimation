@@ -1,4 +1,4 @@
-function [aGFun,aDFun,gFun,seqFun,stmFun] = autoEquations(satStates,modStates,models,combined)
+function [aGFun,aDFun,gFun,seqFun,stmFun] = autoEquations(satStates,modStates,models,nStates)
 %autoEquations
 % INPUTS:
 % OUTPUT:
@@ -13,12 +13,13 @@ gammaString = "gammaROT";
 seqString = "stateEQ";
 stmString = "stateSTM";
 
-if combined 
+dsuffix = sprintf("_%ds1_%dm",m,n);
+gsuffix = sprintf("_%ds1_Nm",m);
+
+if (nStates - n) >= 2*m
     % Block functions
-    suffix = sprintf("_%ds1_%dm",m,n);
     gamMod = "_NsN_Nm";
 else % Individual functions
-    suffix = sprintf("_%dsN_%dm",m,n);
     gamMod = "_Ns1_Nm";
 end
 
@@ -37,10 +38,10 @@ switch models.density
     case ""
         rhoModelName = "_none";
         dragType =  "_nodrag";
-    case {"exp","exponential"}
+    case {"exp","Exp","exponential","Exponential"}
         rhoModelName = "_exp";
         dragType =  "_drag";
-    case {"hp","HP","Harris-Priester"}
+    case {"hp","HP","harris-priester","Harris-Priester"}
         rhoModelName = "_hp";
         dragType = "_drag";
     otherwise
@@ -52,8 +53,8 @@ end
 gammaString = gammaString + gamMod;
 seqString = seqString + dragType + gModelName + gamMod;
 stmString = stmString + dragType + gModelName + gamMod;
-gAccString = gAccString + gModelName + suffix;
-dAccString = dAccString + rhoModelName + suffix;
+gAccString = gAccString + gModelName + gsuffix;
+dAccString = dAccString + rhoModelName + dsuffix;
 
 aGFun = str2func(gAccString);
 aDFun = str2func(dAccString);

@@ -24,6 +24,7 @@ function sConstell = initialConstell(constName)
 %           . trueAnom - True Anomaly [deg]
 %           .    nSats - Total number of satellites
 %           . satNames - String describing name of satellite constellation
+% TODO add a way to just print arguments for a constellation
 arguments (Input)
     constName string = "Default"
 end

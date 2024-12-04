@@ -2,7 +2,7 @@ function statedot = stateEQ_drag_NsN_Nm(~,state,params)
 %
 %
 %
-
+% TODO shared and satellite specific parameters
 gravFunc = params.gravFunc;
 dragFunc = params.dragFunc;
 nSatSt = params.nSatStates;

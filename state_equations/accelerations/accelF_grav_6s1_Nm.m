@@ -3,7 +3,7 @@ function [a_grav,varargout] = accelF_grav_6s1_Nm(state,params)
 muE = params.muE;
 
 % Extract state
-rs = state(1:3)'; r = sqrt(rs.'*rs);
+rs = state(1:3); r = sqrt(rs.'*rs);
 
 % Gravity acceleration
 Gconst = -muE/r^3;
