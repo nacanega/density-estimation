@@ -8,7 +8,6 @@ function [filSol,smoSol,addOut] = LKF_RTSpre(t,zs,initConds,dataMats,sysFuncs,op
 %           .  X_est0 - Initial state estimate
 %           . dx_est0 - Initial state uncertainty estimate
 %           .     P_0 - Initial covariance estimate
-% TODO      .  params - Input for state functions (ie drag, area, etc)
 %  dataMats - Structure of data matrices
 %        . Qdata - 2D or 3D matrix of doubles or function handle (optional)
 %        . Rdata - 2D or 3D matrix of doubles or function handle (optional)
@@ -20,6 +19,7 @@ function [filSol,smoSol,addOut] = LKF_RTSpre(t,zs,initConds,dataMats,sysFuncs,op
 %           .  XdotPhidot - State derivative function handle
 %           .    vsIntFun - Variable step integration function handle
 %           .     odeOpts - Default odeset options for vsIntFun
+%           .   gamRotFun - Rotation matrix and Gamma matrix function handle
 %           .      params - Structure of parameters for state equations
 %      opts - Structure of filter options
 %           .     tol - tolerance to stop iteratively smoothing
@@ -41,7 +41,6 @@ function [filSol,smoSol,addOut] = LKF_RTSpre(t,zs,initConds,dataMats,sysFuncs,op
 %        .      iter - The number of iterations performed
 %        .   maxDiff - The difference metrix for the initial state estimate
 %        . exitState - Why the filter stopped iterating
-% FIXME Change output to indexable structure
 % FIXME Add parameters input validation
 
 % Input Argument Validation
@@ -72,16 +71,17 @@ Htype = dataMats.Htype;
 Qdata = dataMats.Qdata;
 Rdata = dataMats.Rdata;
 Hdata = dataMats.Hdata;
+Qrotm = dataMats.Qrotm;
 
 switch Qtype
     case {"const","data"}
         % Load Q data
         Qs = Qdata;
-        Qfunc = false;
+        Qcalc = false;
     case {"SNC","DMC","func"}
         % Preallocate Q
         Qs = zeros(M,M,N);
-        Qfunc = true;
+        Qcalc = true;
     otherwise
         eid = "QMatrix:invalidQtype";
         msg = "This shouldn't be possible.";
@@ -122,6 +122,7 @@ end
 XdotPhidot = sysFuncs.XdotPhidot;
 vsIntFun = sysFuncs.vsIntFun;
 odeOpts = sysFuncs.odeOpts;
+gamRotFun = sysFuncs.gamRotFun;
 
 if nargin(XdotPhidot) == 2
     dotFunc = XdotPhidot;
@@ -211,33 +212,49 @@ numInc = 0;
 
 while  maxDiff > tol && iter < maxIter && numInc < maxInc
 
+    % Set initial conditions for combined Phi and X_pred integration
+    XpredPhi0 = [X_pred0;reshape(Phis(:,:,1),[],1)]
+
+    % Update reference trajectory and STM
+    % TODO Smart Block integration
+    [~,XpredsPhis] = vsIntFun(dotFunc,t,XpredPhi0,odeOpts);
+    assert(size(XpredsPhis,1) == N, ...
+        "Integration:mustIntegrateWholeTimeInterval", ...
+        "Integration function terminated prematurely, check equation and steps.")
+
+    % Extract
+    X_preds = XpredsPhis(:,1:M);
+    rPhis = XpredsPhis(:,M+1:M+M*M);
+
+    % Update to Incremental Phis
+    % TODO improve this with other methods, the inverse here is bad
+    for i = 2:N
+        Phis(:,:,i) = reshape(rPhis(i,:),M,M)/reshape(rPhis(i-1,:),M,M);
+    end
+
     % Different calculations depending on how Q is calculated
     switch Qtype
         case "SNC"
+
             % TODO SNC Qtype
+            if Qrotm
+                for i = 2:N
+                    [Gamma, rotM] = gamRotFun(dt(i-1),X_preds(i,:));
+                    Qs(:,:,i) = Gamma * rotM * Qdata * rotM' *Gamma';
+                end
+            else
+                for i = 2:N
+                    Gamma = gamRotFun(dt(i-1),X_preds(i,:));
+                    Qs(:,:,i) = Gamma * Qdata * Gamma';
+                end
+            end
 
         case "DMC"
             % TODO DMC Qtype
 
         otherwise % Qs can be calculated individually
 
-            % Set initial conditions for combined Phi and X_pred integration
-            XpredPhi0 = [X_pred0;reshape(Phis(:,:,1),[],1)];
-
-            % Update reference trajectory and STM
-            [~,XpredsPhis] = vsIntFun(dotFunc,t,XpredPhi0,odeOpts);
-
-            % Extract
-            X_preds = XpredsPhis(:,1:M);
-            rPhis = XpredsPhis(:,M+1:M+M*M);
-
-            % Update to Incremental Phis
-            % TODO improve this with other methods, the inverse here is bad
-            for i = 2:N
-                Phis(:,:,i) = reshape(rPhis(i,:),M,M)/reshape(rPhis(i-1,:),M,M);
-            end
-
-            if Qfunc
+            if Qcalc
                 % Evaluate Q matrix at each time as a function of time and state
                 for i = 2:N
                     Qs(:,:,i) = Qdata(t(i),dt(i-1),X_preds(i,:));
@@ -354,17 +371,17 @@ end
 end % LKF_RTSpre Function
 
 %% Helper Functions
-function output = zerosCell(cellSize,matSize)
-    %zeroCells Preallocates a cell array (k-rows, 1 column) with
-    % INPUTS:
-    % cellSize - [m1, m2, ... mk] Vector of cell array dimension lengths
-    %  matSize - [n1, n2, ... nk] Vector of zero array dimension lengths
-    % OUTPUT:
-    % zeroCells - [m1, m2, ... mk] Cell array of [n1, n2, ... nk] zero matrices
+% function output = zerosCell(cellSize,matSize)
+%     %zeroCells Preallocates a cell array (k-rows, 1 column) with
+%     % INPUTS:
+%     % cellSize - [m1, m2, ... mk] Vector of cell array dimension lengths
+%     %  matSize - [n1, n2, ... nk] Vector of zero array dimension lengths
+%     % OUTPUT:
+%     % zeroCells - [m1, m2, ... mk] Cell array of [n1, n2, ... nk] zero matrices
     
-    output = cell(cellSize);
-    output(:) = {zeros(matSize)};
-end
+%     output = cell(cellSize);
+%     output(:) = {zeros(matSize)};
+% end
 
 %% Validation Functions
 function mustBe2Dor3DArrayorFunc(A)
@@ -445,6 +462,20 @@ function mustBeValidDataMats(dataMats)
     mustBeMember(dataMats.Qtype,["const","data","SNC","DMC","func"])
     mustBeMember(dataMats.Rtype,["const","data","func"])
     mustBeMember(dataMats.Htype,["const","data","func"])
+    mustBeScalarBool(QRH.Qrotm)
+end
+
+function mustBeScalarBool(x)
+    % Checks if value is boolean scalar
+    if ~islogical(x)
+        eid = "Type:mustBeLogicalScalar";
+        msg = "Must be a logical/boolean scalar. Failed criteria: boolean.";
+        error(eid,msg)
+    elseif ~isscalar(x)
+        eid = "Size:mustBeLogicalScalar";
+        msg = "Must be a logical/boolean scalar. Failed criteria: scalar.";
+        error(eid,msg)
+    end
 end
 
 function mustBeValidSysFuncs(sysFuncs)
@@ -488,6 +519,7 @@ function mustBeValidSysFuncs(sysFuncs)
             error(eid,msg)
         end     
     end
+    mustBeOdeFunction(sysFuncs.gamRotFun)
 end
 
 function mustBeValidOpts(opts)
@@ -509,6 +541,7 @@ function mustBeValidOpts(opts)
     mustBeTextScalar(opts.outPmat)
     mustBeMember(opts.outIter,["all","last"])
     mustBeMember(opts.outPmat,["all","none"])
+    % TODO add block integration
 end
 
 function mustBeDouble(A)
