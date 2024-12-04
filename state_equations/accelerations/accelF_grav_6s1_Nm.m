@@ -1,6 +1,7 @@
 function [a_grav,varargout] = accelF_grav_6s1_Nm(state,params)
 % [r_x r_y r_z v_x v_y v_z C_D rho_0 h_0 H]
 muE = params.muE;
+nModSt = params.nModStates;
 
 % Extract state
 rs = state(1:3); r = sqrt(rs.'*rs);
@@ -9,16 +10,16 @@ rs = state(1:3); r = sqrt(rs.'*rs);
 Gconst = -muE/r^3;
 a_grav = Gconst*rs;
 
-if nargout == 4
+if nargout == 3
     rhat = rs./r;
-    n = length(state) - 6;
+    I = eye(3);
     % Gravity acceleration partial derivatives
     dadr = Gconst*(I - 3*rhat.*rhat.');
     dadv = zeros(3);
-    dadS = [];
-    dadM = zeros(3,n);
+    dadS = zeros(3,0);
+    dadM = zeros(3,nModSt);
     varargout{2} = dadM;
-    varargout{1} = [dadr;dadv;dadS];
+    varargout{1} = [dadr,dadv,dadS];
 end
 
 end

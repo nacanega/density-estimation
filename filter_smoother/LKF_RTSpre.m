@@ -71,14 +71,18 @@ Htype = dataMats.Htype;
 Qdata = dataMats.Qdata;
 Rdata = dataMats.Rdata;
 Hdata = dataMats.Hdata;
-Qrotm = dataMats.Qrotm;
 
 switch Qtype
     case {"const","data"}
         % Load Q data
         Qs = Qdata;
         Qcalc = false;
-    case {"SNC","DMC","func"}
+    case "SNC"
+        % Preallocate Q
+        Qrotm = dataMats.Qrotm;
+        Qs = zeros(M,M,N);
+        Qcalc = true;
+    case {"DMC","func"}
         % Preallocate Q
         Qs = zeros(M,M,N);
         Qcalc = true;
@@ -244,7 +248,11 @@ while  maxDiff > tol && iter < maxIter && numInc < maxInc
                 end
             else
                 for i = 2:N
-                    Gamma = gamRotFun(dt(i-1),X_preds(i,:));
+                    if cM
+                        Gamma = gamRotFun(dt,X_preds(i,:));
+                    else
+                        Gamma = gamRotFun(dt(i-1),X_preds(i,:));
+                    end
                     Qs(:,:,i) = Gamma * Qdata * Gamma';
                 end
             end
@@ -372,12 +380,12 @@ end % LKF_RTSpre Function
 
 %% Helper Functions
 % function output = zerosCell(cellSize,matSize)
-%     %zeroCells Preallocates a cell array (k-rows, 1 column) with
+%     %zerosCell Preallocates a cell array (k-rows, 1 column) with
 %     % INPUTS:
 %     % cellSize - [m1, m2, ... mk] Vector of cell array dimension lengths
 %     %  matSize - [n1, n2, ... nk] Vector of zero array dimension lengths
 %     % OUTPUT:
-%     % zeroCells - [m1, m2, ... mk] Cell array of [n1, n2, ... nk] zero matrices
+%     % zerosCell - [m1, m2, ... mk] Cell array of [n1, n2, ... nk] zero matrices
     
 %     output = cell(cellSize);
 %     output(:) = {zeros(matSize)};
@@ -462,7 +470,9 @@ function mustBeValidDataMats(dataMats)
     mustBeMember(dataMats.Qtype,["const","data","SNC","DMC","func"])
     mustBeMember(dataMats.Rtype,["const","data","func"])
     mustBeMember(dataMats.Htype,["const","data","func"])
-    mustBeScalarBool(QRH.Qrotm)
+    if isfield(dataMats,"Qrotm")
+        mustBeScalarBool(dataMats.Qrotm)
+    end
 end
 
 function mustBeScalarBool(x)
@@ -519,7 +529,7 @@ function mustBeValidSysFuncs(sysFuncs)
             error(eid,msg)
         end     
     end
-    mustBeOdeFunction(sysFuncs.gamRotFun)
+    % TODO check gamma function
 end
 
 function mustBeValidOpts(opts)

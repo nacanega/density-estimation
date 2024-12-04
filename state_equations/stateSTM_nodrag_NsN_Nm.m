@@ -6,24 +6,26 @@ nModSt = params.nModStates;
 nSats = params.nSats;
 
 N = nSats*nSatSt + nModSt;
-statedot = zeros(N,1);
+statedot = zeros(size(state));
 istatedot = zeros(nSatSt,1);
 
-dvaSdrvS = zeroCells([nSats,1],[nSatSt,nSatSt]);
+dvaSdrvS = zerosCell([nSats,1],[nSatSt,nSatSt]);
 
+dvdrvS = zeros(3,nSatSt); dvdrvS(:,4:6) = eye(3);
 dvaSdM = zeros(nSats*nSatSt,nModSt);
 dMdrvS = zeros(nModSt,N);
 
 for i = nSats:-1:1
     n1 = nSatSt*(i-1) + 1; n2 = i*nSatSt;
-    [a_grav,dadrvS,dadM] = gravFunc(state,params);
+    istate = [state(n1:n2); state(end-(nModSt-1):end)];
+    [a_grav,dadrvS,dadM] = gravFunc(istate,params);
     istatedot(1:6) = [ ...
-        state(n1+3:n2);
+        state(n1+3:n2-(nSatSt-6));
         a_grav
     ];
     statedot(n1:n2) = istatedot;
-    dvaSdrvS = [dvdrvS; dadrvS; ZS];
-    dvaSdM(n1+3:n2,:) = dadM;
+    dvaSdrvS{i} = [dvdrvS; dadrvS; ZS];
+    dvaSdM(n1+3:n1+5,:) = dadM;
 end
 
 F = sparse([blkdiag(dvaSdrvS{:}),dvaSdM;dMdrvS]);

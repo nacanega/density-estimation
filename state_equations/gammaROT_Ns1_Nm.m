@@ -9,7 +9,7 @@ Gamma(1:6,:) = dt*[(dt/2)*I;I];
 
 if nargout == 2
     rs = state(1:3); r = sqrt(rs.'*rs); rhat = rs./r;
-    vs = state(4:6)'; v = sqrt(vs.'*vs); vhat = vs./v;
+    vs = state(4:6); v = sqrt(vs.'*vs); vhat = vs./v;
     nhat = cross(-rhat,vhat);
     varagout{1} = [-rhat,vhat,nhat];
 end

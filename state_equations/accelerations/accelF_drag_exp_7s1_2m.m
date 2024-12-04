@@ -29,8 +29,9 @@ rho = rho_0*exp((h_0-h)/H);
 Dconst = -(CD*A*vR)/(2*m);
 a_drag = Dconst*rho*vRs;
 
-if nargout == 4
+if nargout == 3
     rhat = rs./r;
+    I = eye(3);
     drhodh = -rho/H;
     vRhat = vRs./vR;
     % Drag acceleration partial derivatives
@@ -39,7 +40,7 @@ if nargout == 4
     dadS = -(A*vR)/(2*m)*rho*vRs;
     dadM = Dconst*vRs*[exp((h_0-h)/H), -drhodh*((h-h_0)/H)];
     varargout{2} = dadM;
-    varargout{1} = [dadr;dadv;dadS];
+    varargout{1} = [dadr,dadv,dadS];
 end
 
 end

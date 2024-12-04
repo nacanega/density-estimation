@@ -22,7 +22,7 @@ else
         iState = state(nSatStates*(i-1)+1:nSatStates*i);
         gamma{i} = gammaROT_Ns1_Nm(dt,iState);
     end
-    Gamma(1:end-mModStates,:) = sparse(blkdiag(gamma{:}));
+    Gamma(1:end-nModStates,:) = sparse(blkdiag(gamma{:}));
 end
 
 end

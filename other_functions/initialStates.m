@@ -108,7 +108,7 @@ if combine
     end
 
     initElems(end) = mean(sepElems(:,7),"all"); % Average Orbital Period
-    initStates(n*m + 1:end) = mean(sepMod,1)'; % Average Model parameters, assume all sats share
+    initStates(n*m+1:end) = mean(sepMod,1)'; % Average Model parameters, assume all sats share
 
 else % Individual satellites
     initStates = [sepStates, sepMod];

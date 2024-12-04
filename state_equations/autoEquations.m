@@ -19,8 +19,10 @@ gsuffix = sprintf("_%ds1_Nm",m);
 if (nStates - n) >= 2*m
     % Block functions
     gamMod = "_NsN_Nm";
+    evalGam = true;
 else % Individual functions
     gamMod = "_Ns1_Nm";
+    evalGam = false;
 end
 
 switch models.gravity
@@ -59,6 +61,9 @@ dAccString = dAccString + rhoModelName + dsuffix;
 aGFun = str2func(gAccString);
 aDFun = str2func(dAccString);
 gFun = str2func(gammaString);
+if evalGam
+   gFun = @(dt,X) gFun(dt,X,m,n);
+end
 seqFun = str2func(seqString);
 stmFun = str2func(stmString);
 

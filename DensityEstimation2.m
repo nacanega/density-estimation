@@ -30,9 +30,9 @@ satType = "nCircular";
 satNames = "TestSat";
 models.gravity = "";
 models.density = "exp";
-sysParams = ["C_D","A","m","h_0","H"];
-satStates = ["r_x","r_y","r_z","v_x","v_y","v_z"];
-modStates = "rho_0";
+sysParams = ["A","m","h_0"];
+satStates = ["r_x","r_y","r_z","v_x","v_y","v_z","C_D"];
+modStates = ["rho_0","H"];
 obsStates = ["r_x","r_y","r_z"];
 combine = true;
 nSatSt = length(satStates);
@@ -41,19 +41,18 @@ nStates = max(combine*nSats,1)*nSatSt + nModSt;
 obs = length(obsStates);
 
 % Parameters for drag (all satellites the same)
-C_D = 2.2;
 A = 1e1*1e-6;          % Cross sectional area [km^2]
 m = 4;                 % Mass [kg]
 h_0 = 700;             % Base altitude
 H = 88.667;
-defaultParams = [C_D A m h_0 H]; % TODO reimplement variations of these between sats
+defaultParams = [A m h_0]; % TODO reimplement variations of these between sats
 
 % Standard Deviations
 sigmaR = 1e-3 * ones(3,1); % r_x, r_y, r_z
 sigmaV = 1e-2 * ones(3,1); % v_x, v_y, v_z
-sigmaS = [];%1e-2; % C_D
+sigmaS = 1e-2; % C_D
 sigmaState = [sigmaR;sigmaV;sigmaS];
-sigmaM = 1e-4;%;1e+1]; % rho_0, H
+sigmaM = [1e-4;1e+1]; % rho_0, H
 sigmaQ = [1e-5;1e-5;1e-5];
 sigmaMeas = 0.4e-3 * ones(3,1); % r_x, r_y, r_z
 
@@ -80,7 +79,7 @@ Qrotm = false; % true, false
 
 % Set Data Matrices
 Pmati = P0*eye(nSatSt);
-Pmatj = 1*eye(nModSt);
+Pmatj = P0*eye(nModSt);
 Rmati = covMeas.*eye(obs);
 Hmati = [eye(obs),zeros(obs,nSatSt-obs)];
 modMat = zeros(nModSt);
@@ -110,7 +109,7 @@ rng(seed,generator)
 
 % Integrator
 vsIntFun = @ode45;
-odeOpts = odeset("AbsTol",1e-9,"RelTol",1e-8);
+odeOpts = odeset();%"AbsTol",1e-9,"RelTol",1e-8);
 maxStepPercent = 0.1; % (0,1]
 
 % Set Filter Options
@@ -154,12 +153,12 @@ params.muE = muE;
 params.rE = rE;
 params.wE = wE;
 %params.fE = fE;
-params.C_D = C_D;
+%params.C_D = C_D;
 params.A = A;
 params.m = m;
 %params.rho_0 = rho_0;
 params.h_0 = h_0;
-params.H = H;
+%params.H = H;
 params.gravFunc = gravAccel;
 params.dragFunc = dragAccel;
 params.nSatStates = nSatSt;
@@ -254,9 +253,27 @@ hold off
 daspect([1 1 1])
 
 figure
+plot(Xnl(:,7),'-')
+for i = 1:nSats
+    hold on
+    plot(filtered(2).X(:,7*i),".")
+    plot(smoothed(2).X(:,7*i),".")
+    hold off
+end
+title("C_D")
+
+figure
+semilogy(Xnl(:,end-1))
+hold on
+semilogy(abs(filtered(2).X(:,end-1)),".")
+semilogy(abs(smoothed(2).X(:,end-1)),".")
+hold off
+title("rho_0")
+
+figure
 plot(Xnl(:,end))
 hold on
 plot(filtered(2).X(:,end),".")
 plot(smoothed(2).X(:,end),".")
 hold off
-title("rho_0")
+title("H")

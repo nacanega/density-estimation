@@ -14,6 +14,6 @@ else
     interMats(:) = {subMat};
 end
 
-supMat = sparse(blkdiag(interMats));
+supMat = sparse(blkdiag(interMats{:}));
 
 end

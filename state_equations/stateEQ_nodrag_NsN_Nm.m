@@ -5,14 +5,15 @@ nSatSt = params.nSatStates;
 nModSt = params.nModStates;
 nSats = params.nSats;
 
-N = nSats*nSatSt + nModSt;
-statedot = zeros(N,1);
+statedot = zeros(size(state));
 istatedot = zeros(nSatSt,1);
 
 for i = nSats:-1:1
-    a_grav = gravFunc(state,params);
+    n1 = nSatSt*(i-1) + 1; n2 = i*nSatSt;
+    istate = [state(n1:n2); state(end-(nModSt-1):end)];
+    a_grav = gravFunc(istate,params);
     istatedot(1:6) = [ ...
-        state(nSatSt*(i-1)+4:i*nSatSt);
+        state(n1+3:n2-(nSatSt-6));
         a_grav
     ];
     statedot(nSatSt*(i-1)+1:i*nSatSt) = istatedot;

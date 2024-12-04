@@ -39,13 +39,13 @@ if runCalc
 
     % Parameters for drag (all satellites the same)
     sysParams = ["C_D","A","m"];
-    Cd = 2.17;             % Nominal Drag coefficient
+    C_D = 2.17;             % Nominal Drag coefficient
     sigmaCD = 1e-2;        % Deviation of Drag Coefficient
     A = 1e1*1e-6;          % Cross sectional area [km^2]
     sigmaArea = 1e-1*1e-6; % Deviation of Area [km^2]
     m = 4;                 % Mass [kg]
     sigmaMass = 1e-1;      % Deviation of Mass [kg]
-    defaultParams = [Cd A m];
+    defaultParams = [C_D A m];
 
     % For Satellite Constellation
     % satType = "Iridium";
@@ -131,9 +131,9 @@ if runCalc
         initialOrbits(constellation,states,sysParams,defaultParams);
 
     % Use Initial Orbits to Prepare for Dataset Generation
-    tf = numPeriods*initElems(1,7); % Final Time
-    t = (t0:dt:tf)';                % Time Vector
-    Nstep = length(t);              % Number of time steps
+    tf = numPeriods*initElems(:,end); % Final Time
+    t = (t0:dt:tf)';                  % Time Vector
+    Nstep = length(t);                % Number of time steps
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Calculate Initial Trajectory and Observations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -142,7 +142,7 @@ if runCalc
         params(i).muE = muE;
         params(i).rE = rE;
         params(i).wE = wE;
-        params(i).Cd = varParams(i,1) + sigmaCD*randn;
+        params(i).C_D = varParams(i,1) + sigmaCD*randn;
         params(i).A = varParams(i,2) + sigmaArea*randn;
         params(i).m = varParams(i,3) + sigmaMass*randn;
     end
@@ -248,7 +248,7 @@ if runCalc
 %% Clear Redundant Variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     clear satFun inclin nPlanes phasing argLat satNames hSats nSats
-    clear muE rE wE A Cd m rhoFun
+    clear muE rE wE A .C_D m rhoFun
     clear Qdata Rdata Hdata Qtype Rtype Htype QRH
     clear X0 XdotPhidot vsIntFun odeOpts
     clear smoTol maxIter maxInc outIter outPmat

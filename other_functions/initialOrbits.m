@@ -152,7 +152,7 @@ for i = nSats:-1:1
                 modVals = [];
             case "rho_0" % Exponential model single parameter estimation
                 [rho_0,h_0,H] = expParams(h);
-                modVals(i) = rho_0;
+                modVals(i,1) = rho_0;
             case ["rho_0","H"] % Requires satellites at different altitudes
                 [rho_0,h_0,H] = expParams(h);
                 modVals(i,2) = H;

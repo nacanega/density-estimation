@@ -40,7 +40,7 @@ if runCalc
     J2 = 1.082626174e-3;       % J2 Shape Coefficient
     
     % Parameters for drag (all satellites the same)
-    Cd = 2.17;                 % Nominal Drag coefficient
+    C_D = 2.17;                 % Nominal Drag coefficient
     A = 1e1*1e-6;                % Cross sectional area [km^2]
     m = 4;                     % Mass [kg]
     
@@ -91,6 +91,8 @@ if runCalc
     
     % For H matrix
     states = ["r_x","r_y","r_z","v_x","v_y","v_z"];
+    %satStates
+    %modStates
     nStates = length(states);
     observedStates = ["r_x","r_y","r_z"];
     obs = length(observedStates);
@@ -121,7 +123,7 @@ if runCalc
     % constellation.satNames = satNames;
 
     % Generate Satellite Initial States
-    [satScen,initElems,initStates] = initialOrbits(constellation);
+    [satScen,initElems,initStates] = initialOrbits(constellation);%satStates,modStates,
 
     % Use Initial Orbits to Prepare for Dataset Generation
     tf = numPeriods*initElems(1,7); % Final Time
@@ -135,7 +137,7 @@ if runCalc
     params.rE = rE;
     params.wE = wE;
     params.rhoFun = rhoFun;
-    params.Cd = Cd;
+    params.C_D = C_D;
     params.A = A;
     params.m = m;
     params.J2 = J2;
@@ -233,7 +235,7 @@ if runCalc
 %% Clear Redundant Variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     clear satFun inclin nPlanes phasing argLat satNames hSats nSats
-    clear muE rE wE A Cd m rhoFun
+    clear muE rE wE A .C_D m rhoFun
     clear Qdata Rdata Hdata Qtype Rtype Htype QRH
     clear X0 XdotPhidot vsIntFun odeOpts
     clear smoTol maxIter maxInc outIter outPmat

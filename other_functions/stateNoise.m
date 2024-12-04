@@ -7,10 +7,9 @@ Xn = zeros(size(X));
 
 for i = 1:nSats
     ind = (i-1)*nSatSt+1:i*nSatSt;
-    Xn(:,ind) = ...
-        X(:,ind) + (sigmaState .* randn(N,nSatSt));
+    Xn(ind) = X(ind) + (sigmaState .* randn(nSatSt,1));
 end
 
-Xn(:,modStart:end) = X(:,modStart:end) + (sigmaMod.*randn(N,length(sigmaMod)));
+Xn(modStart:end) = X(modStart:end) + (sigmaMod .* randn(length(sigmaMod),1));
 
 end
