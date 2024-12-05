@@ -59,10 +59,10 @@ end
 narginchk(1,5)
 nargoutchk(3,5)
 
-% startDate = datetime(2000,1,1,12,0,0);
-% stopDate = startDate + hours(1.5);
-% sampleTime = 60;
-satScen = satelliteScenario("AutoSimulate",false);
+startDate = datetime(2000,1,1,12,0,0);
+stopDate = startDate + seconds(1);
+sampleTime = 60;
+satScen = satelliteScenario(startDate,stopDate,sampleTime,"AutoSimulate",false);
 satFun = S.satFun;
 satFunName = func2str(satFun);
 
@@ -222,5 +222,9 @@ if nargout == 5
 elseif nargout == 4
     varargout{1} = modVals;
 end
+
+restart(satScen);
+satScen.StopTime = startDate + seconds(max(initElems(:,7)));
+advance(satScen);
 
 end % function
