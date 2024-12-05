@@ -10,6 +10,6 @@ for i = 1:nSats
     Xn(ind) = X(ind) + (sigmaState .* randn(nSatSt,1));
 end
 
-Xn(modStart:end) = X(modStart:end) + (sigmaMod .* randn(length(sigmaMod),1));
+Xn(modStart:end) = X(modStart:end) + (sigmaMod .* abs(randn(length(sigmaMod),1)));
 
 end
