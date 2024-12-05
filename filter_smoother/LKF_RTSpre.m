@@ -58,7 +58,11 @@ X_est0 = initConds.X_est0;
 dx_est0 = initConds.dx_est0;
 P_0 = initConds.P_0;
 % Swtiched to normalized maximum difference
-order = 10.^floor(log10(abs(X_est0)));
+if isfield(opts,"order")
+    order = opts.order;
+else
+    order = ones(size(X_est0));
+end
 
 % Get sizes for indexing and preallocation
 M = size(X_est0,1);
@@ -243,16 +247,22 @@ while  maxDiff > tol && iter < maxIter && numInc < maxInc
             % TODO SNC Qtype
             if Qrotm
                 for i = 2:N
-                    [Gamma, rotM] = gamRotFun(dt(i-1),X_preds(i,:));
+                    if cM
+                        dtQ = dt;
+                    else
+                        dtQ = dt(i-1);
+                    end
+                    [Gamma, rotM] = gamRotFun(dtQ,X_preds(i,:)');
                     Qs(:,:,i) = Gamma * rotM * Qdata * rotM' *Gamma';
                 end
             else
                 for i = 2:N
                     if cM
-                        Gamma = gamRotFun(dt,X_preds(i,:));
+                        dtQ = dt;
                     else
-                        Gamma = gamRotFun(dt(i-1),X_preds(i,:));
+                        dtQ = dt(i-1);
                     end
+                    Gamma = gamRotFun(dtQ,X_preds(i,:)');
                     Qs(:,:,i) = Gamma * Qdata * Gamma';
                 end
             end
@@ -297,7 +307,7 @@ while  maxDiff > tol && iter < maxIter && numInc < maxInc
     pMaxDiff = maxDiff;
 
     % Calculate Difference
-    maxDiff = max((abs(X_sms(1,:).'-X_pred0))./order);
+    maxDiff = max(abs(X_sms(1,:).'-X_pred0)./order);
 
     % Update numInc
     if maxDiff > pMaxDiff
@@ -368,11 +378,20 @@ if maxDiff < tol
         addOut.iter(iter+1:end) = [];
         addOut.maxDiff(iter+1:end) = [];
     end
+elseif iter == maxIter
+    addOut.exitState = "Maximum Iterations Reached";
 else
-    if iter == maxIter
-        addOut.exitState = "Maximum Iterations Reached";
-    else
-        addOut.exitState = "Filter Diverged";
+    addOut.exitState = "Filter Diverged";
+    if saveAll
+        % Filtered Solution
+        filSol(iter+1:end) = [];
+
+        % Smoothed Solution
+        smoSol(iter+1:end) = [];
+
+        % Additional Outputs
+        addOut.iter(iter+1:end) = [];
+        addOut.maxDiff(iter+1:end) = [];
     end
 end
 
