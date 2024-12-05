@@ -258,73 +258,156 @@ plot3(filtered(1).X(end,1),filtered(1).X(end,2),filtered(1).X(end,3),"or")
 plot3(filtered(1).X(1,1),filtered(1).X(1,2),filtered(1).X(1,3),"og")
 hold off
 daspect([1 1 1])
+title("Orbital Trajectory")
 
 figure
-semilogy(Xnl(:,end))
+semilogy(Xnl(:,end),"-","LineWidth",2)
 hold on
-semilogy(abs(filtered(1).X(:,end)),".")
-semilogy(abs(smoothed(1).X(:,end)),".")
-semilogy(abs(filtered(end).X(:,end)),".")
-semilogy(abs(smoothed(end).X(:,end)),".")
+semilogy(t,abs(filtered(1).X(:,end)),".")
+semilogy(t,abs(smoothed(1).X(:,end)),"-","LineWidth",2)
+semilogy(t,abs(filtered(end).X(:,end)),".")
+semilogy(t,abs(smoothed(end).X(:,end)),"--","LineWidth",2)
 hold off
-title("rho_0")
+title("\rho_0, Absolute Value for Semilog Scale")
+axis tight
+grid on
+xlabel("Time, s")
+ylabel("Density, kg/km^3")
+legend([...
+    "Truth",...
+    "First Filter Iteration",...
+    "First Smoother Iteration",...
+    "Last Filter Iteration",...
+    "Last Smoother Iteration"],"Location","northeast")
+
+figure
+pScale = 1e-4;
+plot(Xnl(:,end),"-","LineWidth",2)
+hold on
+plot(t,filtered(1).X(:,end),".")
+plot(t,smoothed(1).X(:,end),"-","LineWidth",2)
+plot(t,filtered(end).X(:,end),".")
+plot(t,smoothed(end).X(:,end),"--","LineWidth",2)
+hold off
+title("\rho_0")
+grid on
+axis tight
+ylim([-2.5,1]*pScale)
+xlabel("Time, s")
+ylabel("Density, kg/km^3")
+legend([...
+    "Truth",...
+    "First Filter Iteration",...
+    "First Smoother Iteration",...
+    "Last Filter Iteration",...
+    "Last Smoother Iteration"],"Location","southoutside",...
+    "NumColumns",2,"Orientation","horizontal")
 
 figure
 t1 = tiledlayout(3,1);
-title(t1,"r Vectors")
+title(t1,"Position Errors")
+rScale = 3*sigmaR(1);
 
 nexttile
 plot(zs(:,1)-Xnl(:,1),".")
 hold on
-plot(filtered(1).X(:,1)-Xnl(:,1),".")
-plot(smoothed(1).X(:,1)-Xnl(:,1),".")
-plot(filtered(end).X(:,1)-Xnl(:,1),".")
-plot(smoothed(end).X(:,1)-Xnl(:,1),".")
+plot(t,filtered(1).X(:,1)-Xnl(:,1),".")
+plot(t,smoothed(1).X(:,1)-Xnl(:,1),".")
+plot(t,filtered(end).X(:,1)-Xnl(:,1),".")
+plot(t,smoothed(end).X(:,1)-Xnl(:,1),".")
 hold off
+axis tight
+ylim([-1 1]*rScale)
+grid on
+ylabel("Error in r_x, km")
 
 nexttile
 plot(zs(:,2)-Xnl(:,2),".")
 hold on
-plot(filtered(1).X(:,2)-Xnl(:,2),".")
-plot(smoothed(1).X(:,2)-Xnl(:,2),".")
-plot(filtered(end).X(:,2)-Xnl(:,2),".")
-plot(smoothed(end).X(:,2)-Xnl(:,2),".")
+plot(t,filtered(1).X(:,2)-Xnl(:,2),".")
+plot(t,smoothed(1).X(:,2)-Xnl(:,2),".")
+plot(t,filtered(end).X(:,2)-Xnl(:,2),".")
+plot(t,smoothed(end).X(:,2)-Xnl(:,2),".")
 hold off
+axis tight
+ylim([-1 1]*rScale)
+grid on
+ylabel("Error in r_y, km")
 
 nexttile
+r3 = plot([t(1),t(end)],[0,0],"-");
 plot(zs(:,3)-Xnl(:,3),".")
 hold on
-plot(filtered(1).X(:,3)-Xnl(:,3),".")
-plot(smoothed(1).X(:,3)-Xnl(:,3),".")
-plot(filtered(end).X(:,3)-Xnl(:,3),".")
-plot(smoothed(end).X(:,3)-Xnl(:,3),".")
+plot(t,filtered(1).X(:,3)-Xnl(:,3),".")
+plot(t,smoothed(1).X(:,3)-Xnl(:,3),".")
+plot(t,filtered(end).X(:,3)-Xnl(:,3),".")
+plot(t,smoothed(end).X(:,3)-Xnl(:,3),".")
 hold off
+axis tight
+ylim([-1 1]*rScale)
+grid on
+ylabel("Error in r_z, km")
+xlabel("Time, s")
+
+lg = legend([...
+    "Observations",...
+    "First Filter Iteration",...
+    "First Smoother Iteration",...
+    "Last Filter Iteration",...
+    "Last Smoother Iteration"],"NumColumns",2,"Orientation","horizontal");
+lg.Layout.Tile = "south";
 
 figure
 t2 = tiledlayout(3,1);
-title(t2,"v Vectors");
+title(t2,"Velocity Errors");
+vScale = 1e-5;
 
 nexttile
+v1 = plot([t(1),t(end)],[0,0],"-","Visible","off");
 hold on
-plot(filtered(1).X(:,4)-Xnl(:,4),".")
-plot(smoothed(1).X(:,4)-Xnl(:,4),".")
-plot(filtered(end).X(:,4)-Xnl(:,4),".")
-plot(smoothed(end).X(:,4)-Xnl(:,4),".")
+plot(t,filtered(1).X(:,4)-Xnl(:,4),".")
+plot(t,smoothed(1).X(:,4)-Xnl(:,4),".")
+plot(t,filtered(end).X(:,4)-Xnl(:,4),".")
+plot(t,smoothed(end).X(:,4)-Xnl(:,4),".")
 hold off
+axis tight
+ylim([-1 1]*vScale)
+uistack(v1,'top')
+grid on
+ylabel("Error in v_x, km")
 
 nexttile
-
+v2 = plot([t(1),t(end)],[0,0],"-","Visible","off");
 hold on
-plot(filtered(1).X(:,5)-Xnl(:,5),".")
-plot(smoothed(1).X(:,5)-Xnl(:,5),".")
-plot(filtered(end).X(:,5)-Xnl(:,5),".")
-plot(smoothed(end).X(:,5)-Xnl(:,5),".")
+plot(t,filtered(1).X(:,5)-Xnl(:,5),".")
+plot(t,smoothed(1).X(:,5)-Xnl(:,5),".")
+plot(t,filtered(end).X(:,5)-Xnl(:,5),".")
+plot(t,smoothed(end).X(:,5)-Xnl(:,5),".")
 hold off
+axis tight
+ylim([-1 1]*vScale)
+grid on
+ylabel("Error in v_y, km")
+uistack(v2,'top')
 
 nexttile
+v3 = plot([t(1),t(end)],[0,0],"-","Visible","off");
 hold on
-plot(filtered(1).X(:,6)-Xnl(:,6),".")
-plot(smoothed(1).X(:,6)-Xnl(:,6),".")
-plot(filtered(end).X(:,6)-Xnl(:,6),".")
-plot(smoothed(end).X(:,6)-Xnl(:,6),".")
+plot(t,filtered(1).X(:,6)-Xnl(:,6),".")
+plot(t,smoothed(1).X(:,6)-Xnl(:,6),".")
+plot(t,filtered(end).X(:,6)-Xnl(:,6),".")
+plot(t,smoothed(end).X(:,6)-Xnl(:,6),".")
 hold off
+axis tight
+ylim([-1 1]*vScale)
+grid on
+ylabel("Error in v_z, km")
+xlabel("Time, s")
+uistack(v3,'top')
+
+lg = legend([...
+    "First Filter Iteration",...
+    "First Smoother Iteration",...
+    "Last Filter Iteration",...
+    "Last Smoother Iteration"],"NumColumns",2,"Orientation","horizontal");
+lg.Layout.Tile = "south";
