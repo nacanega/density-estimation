@@ -19,7 +19,7 @@ dvdrvS(:,4:6) = eye(3);
 dvdM = zeros(3,nModSt);
 
 ZS = zeros(nSatSt-6,nSatSt);
-ZM = zeros(nModSt,nSatSt);
+ZM = zeros(nModSt,nSatSt+nModSt);
 
 F = sparse([ ...
     dvdrvS,dvdM; ...

@@ -24,7 +24,7 @@ dadrvS = dadrvSG + dadrvSD;
 dadM = dadMG + dadMD;
 
 ZS = zeros(nSatSt-6,nSatSt);
-ZM = zeros(nModSt,nSatSt);
+ZM = zeros(nModSt,nSatSt+nModSt);
 
 F = sparse([ ...
     dvdrvS,dvdM; ...
