@@ -1,4 +1,4 @@
-function [Gamma,varagout] = gammaROT_Ns1_Nm(dt,state)
+function [Gamma,varargout] = gammaROT_Ns1_Nm(dt,state)
 %gammaROT_7s returns the Gamma and Rotation matrices for a 7 state system
 nargoutchk(1,2)
 
@@ -11,7 +11,7 @@ if nargout == 2
     rs = state(1:3); r = sqrt(rs.'*rs); rhat = rs./r;
     vs = state(4:6); v = sqrt(vs.'*vs); vhat = vs./v;
     nhat = cross(-rhat,vhat);
-    varagout{1} = [-rhat,vhat,nhat];
+    varargout{1} = [-rhat,vhat,nhat];
 end
 
 end
