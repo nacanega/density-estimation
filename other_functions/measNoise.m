@@ -4,12 +4,9 @@ function zs = measNoise(X,sigmaMeas,nSats,H)
 [N,~] = size(X);
 [obs,iStates] = size(H);
 
-indexes = H*(1:iStates)';
-zs = zeros(N,obs*nSats);
+sigmaMeas = repmat(sigmaMeas,nSats,1);
 
-for i = 1:nSats
-    ind = indexes + (i-1)*iStates;
-    zs(:,(i-1)*obs+1:i*obs) = X(:,ind) + (sigmaMeas' .* randn(N,obs));
-end
+ind = H*(1:iStates)';
+zs = X(:,ind) + (sigmaMeas' .* randn(N,obs));
 
 end

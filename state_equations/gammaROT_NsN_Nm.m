@@ -14,8 +14,8 @@ if nargout == 2
         iState = state(nSatStates*(i-1)+1:nSatStates*i);
         [gamma{i},rotms{i}] = gammaROT_Ns1_Nm(dt,iState);
     end
-    Gamma(1:end-mModStates,:) = sparse(blkdiag(gamma{:}));
-    varargout = sparse(blkdiag(rotms{:}));
+    Gamma(1:end-nModStates,:) = sparse(blkdiag(gamma{:}));
+    varargout{1} = sparse(blkdiag(rotms{:}));
 else
     gamma = zerosCell([nSats,1],[nSatStates,3]);
     for i = nSats:-1:1

@@ -6,7 +6,7 @@ modStart = nSats*nSatSt + 1;
 Xn = zeros(size(X));
 
 for i = 1:nSats
-    ind = (i-1)*nSatSt+1:i*nSatSt;
+    ind = (i-1)*nSatSt + (1:nSatSt)';
     Xn(ind) = X(ind) + (sigmaState .* randn(nSatSt,1));
 end
 

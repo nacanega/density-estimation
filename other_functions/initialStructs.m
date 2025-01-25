@@ -66,7 +66,7 @@ if combine
     % Initial Conditions
     initConds.X_est0 = zeros(cL,1);    % Default value is zero, be sure to set
     initConds.dx_est0 = zeros(cL,1);   % Default value should be zero vector
-    initConds.P_0 = Inf*eye(cL);; % Default value should be infinite
+    initConds.P_0 = Inf*eye(cL); % Default value should be infinite
 
     if isfield(QRH,"Qdata")
         dataMats.Qdata = QRH.Qdata;
