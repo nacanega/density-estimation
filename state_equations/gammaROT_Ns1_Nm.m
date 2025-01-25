@@ -8,10 +8,11 @@ Gamma = zeros(N,3);
 Gamma(1:6,:) = dt*[(dt/2)*I;I];
 
 if nargout == 2
-    rs = state(1:3); r = sqrt(rs.'*rs); rhat = rs./r;
-    vs = state(4:6); v = sqrt(vs.'*vs); vhat = vs./v;
-    nhat = cross(-rhat,vhat);
-    varargout{1} = [-rhat,vhat,nhat];
+    rs = state(1:3); rhat = rs./sqrt(rs.'*rs);
+    vs = state(4:6); % vhat = vs./sqrt(vs.'*vs);
+    hs = cross(rs,vs); hhat = hs./sqrt(hs.'*hs);
+    ns = cross(-hs,-rs); nhat = ns./sqrt(ns.'*ns);
+    varargout{1} = [nhat,-hhat,-rhat]; %LVLH
 end
 
 end
