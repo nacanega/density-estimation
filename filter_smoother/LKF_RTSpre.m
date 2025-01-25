@@ -12,7 +12,7 @@ function [filSol,smoSol,addOut] = LKF_RTSpre(t,zs,initConds,dataMats,sysFuncs,op
 %        . Qdata - 2D or 3D matrix of doubles or function handle (optional)
 %        . Rdata - 2D or 3D matrix of doubles or function handle (optional)
 %        . Hdata - 2D or 3D matrix of doubles or function handle (optional)
-%        . Qtype - string telling if const, data, SNC, DMC, or other func
+%        . Qtype - string telling if const, data, SNC, DMC, or func
 %        . Rtype - string telling if const, data, or func
 %        . Htype - string telling if const, data, or func
 %  sysFuncs - Structure of system functions
@@ -33,7 +33,7 @@ function [filSol,smoSol,addOut] = LKF_RTSpre(t,zs,initConds,dataMats,sysFuncs,op
 %        . dx - The filtered/estimated state uncertainty
 %        . bs - The filter innovation vectors
 %        .  P - The filtered/estimated covariance
-% smoSol - Structure array containting the iteratively smoothed solution
+% smoSol - Structure array containing the iteratively smoothed solution
 %        .  X - The smoothed state
 %        . dx - The smoothed uncertainty
 %        .  P - The smoothed covariance
@@ -243,8 +243,7 @@ while  maxDiff > tol && iter < maxIter && numInc < maxInc
     % Different calculations depending on how Q is calculated
     switch Qtype
         case "SNC"
-
-            % TODO SNC Qtype
+            % State Noise Compensation
             if Qrotm
                 for i = 2:N
                     if cM
