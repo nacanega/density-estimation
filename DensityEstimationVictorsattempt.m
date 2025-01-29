@@ -1,0 +1,142 @@
+clear; clc; close all;
+
+%% Time of Orbit and Time Step
+dt = 1;
+time = 0:dt:6000;
+%% True Satellite Orbit and Parameters
+altitude = 530;
+params.muE = 398600.4415;
+params.rE = 6378.1363;
+params.wE = (2*pi)/86164.0905308;
+params.Cd = 2.2;
+params.A = 1e1*1e-6;
+params.m = 4;
+params.Om = 1;
+params.w = 5;
+params.i = 15;
+params.n = 3;
+params.tilt = -23.44; 
+params.lambda = 30;
+params.JDe = 2463722.5;
+
+Xtrueinitial = [params.rE + altitude;0;0;0;7.58;0];
+Xtrueinitial = pqw_to_geo(Xtrueinitial, params);
+[chi_term,~] = Ubfun(Xtrueinitial(1:3),params.JDe,params);
+
+[~,rho0_min,rho0_max,~,~] = hpDensity(altitude,chi_term);
+[H_m,H_M,h_low] = hpSTM(altitude);
+params.H_m = H_m;
+params.H_M = H_M;
+params.h_low = h_low;
+
+intopt = odeset('AbsTol', 1e-12, 'RelTol', 1e-12);
+[~, Xtrue] = ode113(@TrueOrbits, time, Xtrueinitial, intopt, params);
+Xtrue(:,7) = rho0_min;
+Xtrue(:,8) = rho0_max; 
+
+%% Noisy Measurments
+sigmaMeas = 1e-3 * ones(3,1);
+zs = Xtrue(:, 1:3) + sigmaMeas'.*randn(size(Xtrue(:, 1:3)));
+
+%% Reference Trajectory and STM
+X = [Xtrueinitial(1:3)+.005;Xtrueinitial(4:6)+.0005];
+rho0min_estimate = rho0_min - 1.8e-3;
+rho0max_estimate = rho0_max + 1.8e-3; 
+Phi = eye(8,8); 
+xyzPhi = [X;rho0min_estimate; rho0max_estimate; Phi(:)];
+[~,xyzPhi_1] = ode113(@STM, time, xyzPhi, intopt, params);
+
+Phis(:,:,1) = Phi;
+for i = 2:length(xyzPhi_1)
+    phitn_1to = reshape(xyzPhi_1(i-1,9:end),8,8); %%%%
+    phitnto = reshape(xyzPhi_1(i,9:end),8,8); %%%%%
+    Phis(:,:,i) = phitnto/phitn_1to;
+end
+
+
+%% Filtering and Smoothing
+X_est0 = xyzPhi_1(1,1:8); %%%%
+dx_est0 = X_est0 - X_est0;
+P_0 = diag([10;10;10;1;1;1;1e-2;1e-2]);
+Hs = [1, 0, 0, 0, 0, 0, 0, 0;  
+      0, 1, 0, 0, 0, 0, 0, 0;  
+      0, 0, 1, 0, 0, 0, 0, 0]; %%%%
+Qs = diag([1e-12, 1e-12, 1e-12, 1e-12, 1e-12, 1e-12, 1e-12, 1e-12]); %%%%
+Rs = diag([(1e-3)^2;(1e-3)^2;(1e-3)^2]);
+X_preds = xyzPhi_1(:,1:8); %%%%%
+[X_ests,dx_ests,P_ests,P_preds,bs] = LKF(X_est0',dx_est0',P_0,Hs,Qs,Rs,zs,X_preds,Phis);
+[X_sms,dx_sms,P_sms] = RTS(X_preds,dx_ests,Phis,P_ests,P_preds);
+X_filter1 = X_ests;
+
+
+for j = 1:12
+Phi = eye(8,8);
+xyzPhi = [X_sms(1,1:6)';X_sms(1,7);X_sms(1,8); Phi(:)];
+[~,xyzPhi] = ode113(@STM, time, xyzPhi, intopt, params);
+
+Phis(:,:,1) = Phi;
+for i = 2:length(xyzPhi)
+    phitn_1to = reshape(xyzPhi(i-1,9:end),8,8);
+    phitnto = reshape(xyzPhi(i,9:end),8,8);
+    Phis(:,:,i) = phitnto/phitn_1to;
+end
+X_est0 = xyzPhi(1,1:8);
+dx_est0 = X_est0 - X_est0;
+X_preds = xyzPhi(:,1:8);
+[X_ests,dx_ests,P_ests,P_preds,bs] = LKF(X_est0',dx_est0',P_0,Hs,Qs,Rs,zs,X_preds,Phis);
+[X_sms,dx_sms,P_sms] = RTS(X_preds,dx_ests,Phis,P_ests,P_preds);
+end
+%% Plots
+
+[xe, ye, ze] = sphere(50); 
+xe = params.rE * xe;
+ye = params.rE * ye; 
+ze = params.rE * ze; 
+
+figure; 
+plot3(Xtrue(:,1), Xtrue(:,2), Xtrue(:,3), '-k', 'LineWidth', 2.8) 
+hold on;
+surf(xe, ye, ze, 'FaceColor', [0.5, 0.5, 1], 'EdgeColor', 'none', 'FaceAlpha', 0.5);
+scatter3(zs(:,1), zs(:,2), zs(:,3), '.r')
+plot3(X_sms(:,1), X_sms(:,2), X_sms(:,3), '--g', 'LineWidth', 1.5)
+
+xlabel('X [km]', 'FontSize', 15, 'FontWeight', 'bold')
+ylabel('Y [km]', 'FontSize', 15, 'FontWeight', 'bold')
+zlabel('Z [km]', 'FontSize', 15, 'FontWeight', 'bold')
+
+zlim([-1e4 1e4])
+xlim([-1e4 1e4])
+ylim([-1e4 1e4])
+axis square
+
+
+% Nominal Minimum Atmospheric Density
+figure;
+plot(time, Xtrue(:,7), '-k', 'LineWidth', 2.7); hold on;
+plot(time, xyzPhi_1(:,7), '-r', 'LineWidth', 2.5)
+plot(time, X_ests(:,7), '-m', 'LineWidth', 1.2)
+plot(time, X_sms(:,7), '--g', 'LineWidth', 1.6)
+
+xlabel('Time [s]', 'FontSize', 15, 'FontWeight', 'bold')
+ylabel('Nominal Minimum Atmospheric Density [kg/km^3]', 'FontSize', 15, 'FontWeight', 'bold')
+legend('True', 'Reference', 'Last Filter Iteration', 'Last Smoother Iteration','FontSize',15)
+ylim([-.004 .0025]);
+
+set(gca, 'LineWidth', 1.5,'FontSize', 15)
+axis square
+
+% Nominal Maximum Atmospheric Density
+figure;
+plot(time, Xtrue(:,8), '-k', 'LineWidth', 2.7); hold on;
+plot(time, xyzPhi_1(:,8), '-r', 'LineWidth', 2.5)
+plot(time, X_ests(:,8), '-m', 'LineWidth', 1.2)
+plot(time, X_sms(:,8), '--g', 'LineWidth', 1.6)
+
+xlabel('Time [s]', 'FontSize', 15, 'FontWeight', 'bold')
+ylabel('Nominal Maximum Atmospheric Density [kg/km^3]', 'FontSize', 15, 'FontWeight', 'bold')
+legend('True', 'Reference', 'Last Filter Iteration', 'Last Smoother Iteration','FontSize',15)
+
+ylim([-.0015 .0055]);
+
+set(gca, 'LineWidth', 1.5,'FontSize', 15)
+axis square
